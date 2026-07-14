@@ -1,159 +1,158 @@
-# Turborepo starter
+# AcePrep : A Nextjs + Nodejs based interview prepration platform.
 
-This Turborepo starter is maintained by the Turborepo core team.
+A comprehensive interview preparation platform with questions which is asked in interview, filtering, premium content, and interview experiences — built with Next.js and Express in a Turborepo monorepo.
 
-## Using this example
+<!-- Add your demo video/screenshot here -->
 
-Run the following command:
+## Features
 
-```sh
-npx create-turbo@latest
-```
+### Built
 
-## What's inside?
+- **Authentication** — Email/password and Google OAuth with JWT sessions
+- **Question Browsing** — Filter by language, field, difficulty, and text search
+- **Premium Gating** — Page 2+ requires an active premium subscription
+- **Admin CRUD** — Create, update, and delete question sets and questions
+- **Responsive UI** — Works across desktop and mobile
 
-This Turborepo includes the following packages/apps:
+### Coming Soon
 
-### Apps and Packages
+- **Premium Purchase System** — Razorpay integration with tiered plans and upgrade support
+- **Referral System** — Invite friends, earn wallet balance on their purchases
+- **Discount Coupons** — Percentage and fixed-amount promo codes
+- **Interview Experiences** — User-submitted experience posts with admin review
+- **Wallet System** — In-app balance from referral rewards and purchases
+- **Admin Dashboard** — Full platform management panel
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## Tech Stack
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### Frontend
 
-### Utilities
+| Technology     | Purpose                         |
+| -------------- | ------------------------------- |
+| Next.js 16     | React framework with App Router |
+| React 19       | UI library                      |
+| TypeScript     | Type-safe JavaScript            |
+| Tailwind CSS 4 | Utility-first styling           |
+| Axios          | HTTP client with interceptors   |
 
-This Turborepo has some additional tools already setup for you:
+### Backend
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+| Technology       | Purpose                           |
+| ---------------- | --------------------------------- |
+| Express 5        | REST API framework                |
+| TypeScript       | Type-safe server code             |
+| Prisma 7         | ORM with PostgreSQL (Neon)        |
+| JWT + bcrypt     | Authentication & password hashing |
+| Google OAuth 2.0 | Social login                      |
+| Razorpay         | Payment gateway                   |
+| Zod 4            | Request validation                |
+| Helmet           | Security headers                  |
 
-### Build
+### Infrastructure
 
-To build all apps and packages, run the following command:
+| Technology        | Purpose                          |
+| ----------------- | -------------------------------- |
+| Turborepo         | Monorepo build system            |
+| pnpm              | Package manager (workspace mode) |
+| PostgreSQL (Neon) | Database                         |
+| Prettier          | Code formatting                  |
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## Getting Started
 
-```sh
-cd my-turborepo
-turbo build
-```
+### Prerequisites
 
-Without global `turbo`, use your package manager:
+- [Node.js](https://nodejs.org/) v18+
+- [pnpm](https://pnpm.io/) v9+
+- A [Neon](https://neon.tech/) PostgreSQL database
+- Google OAuth credentials (optional)
+- Razorpay account (optional)
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
-```
+### Installation
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+1. **Clone the repository**
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+   ```bash
+   git clone https://github.com/your-username/aceprep.git
+   cd aceprep
+   ```
 
-```sh
-turbo build --filter=docs
-```
+2. Install dependencies
+   pnpm install
+3. Set up environment variables
+   Server (apps/server/.env):
+   DATABASE_URL="postgresql://..."
+   JWT_SECRET="your-secret-key"
+   GOOGLE_CLIENT_ID="your-google-client-id"
+   GOOGLE_CLIENT_SECRET="your-google-client-secret"
+   RAZORPAY_KEY_ID="your-razorpay-key"
+   RAZORPAY_SECRET="your-razorpay-secret"
+   FRONTEND_URL="http://localhost:3000"
+   PORT=5000
+   Frontend (apps/web/.env):
+   NEXT_PUBLIC_API_URL="http://localhost:5000/api/v1"
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID="your-google-client-id"
+4. Run database migrations and seed
+   cd apps/server
+   npx prisma migrate dev --name init
+   npx prisma db seed
+5. Start development servers
+   pnpm dev
+   Frontend runs on http://localhost:3000, backend on http://localhost:5000.
+   Project Structure
+   aceprep/
+   ├── apps/
+   │ ├── web/ # Next.js 16 frontend
+   │ │ └── src/
+   │ │ ├── app/ # App Router pages
+   │ │ ├── components/ # Layout components
+   │ │ ├── features/ # Auth & Questions modules
+   │ │ └── lib/ # API client & utilities
+   │ │
+   │ └── server/ # Express 5 API
+   │ ├── prisma/ # Schema & seed
+   │ └── src/
+   │ ├── features/ # Auth & Questions modules
+   │ ├── middleware/ # Auth, validation, error handling
+   │ ├── lib/ # Prisma client
+   │ └── shared/ # Error classes
+   │
+   └── packages/
+   ├── typescript-config/ # Shared tsconfig presets
+   ├── eslint-config/ # Shared ESLint config
+   └── ui/ # Shared React components
+   API Endpoints
+   Auth
+   Method
+   POST
+   POST
+   POST
+   GET
+   Questions
+   Method
+   GET
+   GET
+   GET
+   POST
+   POST
+   DELETE
+   DELETE
+   Database
+   The schema includes 12 models across authentication, questions, premium payments, referrals, and experiences. Key models:
 
-Without global `turbo`:
+- User — Account with role, wallet balance, premium status, referral code
+- Question — Interview question with content, answer, difficulty, and tags
+- QuestionSet — Groups questions by language + field
+- PremiumPurchase — Payment records with Razorpay integration
+- DiscountCoupon — Promo codes with usage limits
+- ReferralReward — Referral bonus tracking
+- Experience — User-submitted interview experiences
+  See apps/server/prisma/schema.prisma for the full schema.
+  Contributing
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+1. Fork the repo and create a feature branch
+2. Follow the existing code patterns (feature-based modules, plain functions, Zod validation)
+3. Use conventional commits: feat:, fix:, docs:, refactor:
+4. Test your changes locally
+5. Submit a PR with a clear description
+   License
+   MIT
