@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import * as questionsService from "./questions.service";
+import * as questionsService from "./questions.service.js";
 
 export async function getLanguages(req: Request, res: Response, next: NextFunction) {
     try {

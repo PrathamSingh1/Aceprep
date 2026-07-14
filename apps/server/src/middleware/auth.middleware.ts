@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { env } from "../config/env";
-import { prisma } from "../lib/prisma";
+import { env } from "../config/env.js";
+import { prisma } from "../lib/prisma.js";
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {

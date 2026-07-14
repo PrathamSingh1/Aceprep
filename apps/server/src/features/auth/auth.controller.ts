@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import * as authService from "./auth.service";
+import * as authService from "./auth.service.js";
 
 export async function register(req: Request, res: Response, next: NextFunction) {
     try {

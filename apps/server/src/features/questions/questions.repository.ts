@@ -1,4 +1,4 @@
-import { prisma } from "../../lib/prisma";
+import { prisma } from "../../lib/prisma.js";
 
 export async function findManyLanguages(where: any) {
     return prisma.language.findMany({ where, orderBy: { sortOrder: "asc" } });

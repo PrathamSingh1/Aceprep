@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { errorHandler } from "./middleware/error.middleware";
-import router from "./routes";
+import { errorHandler } from "./middleware/error.middleware.js";
+import router from "./routes/index.js";
 
 
 const app = express();

@@ -1,5 +1,5 @@
 import * as questionsRepo from "./questions.repository";
-import { prisma } from "../../lib/prisma";
+import { prisma } from "../../lib/prisma.js";
 
 export async function getLanguages() {
     return questionsRepo.findManyLanguages({ isActive: true });

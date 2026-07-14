@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { optionalAuthMiddleware, authMiddleware, adminMiddleware } from "../../middleware/auth.middleware";
-import * as questionsController from "./questions.controller";
+import { optionalAuthMiddleware, authMiddleware, adminMiddleware } from "../../middleware/auth.middleware.js";
+import * as questionsController from "./questions.controller.js";
 
 const router = Router();
 

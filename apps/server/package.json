@@ -2,12 +2,12 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
     "build": "tsc -b",
-    "start": "node ./dist/server.js",
-    "dev": "npm run build && npm run start"
+    "start": "node ./dist/src/server.js",
+    "dev": "tsx src/server.ts"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

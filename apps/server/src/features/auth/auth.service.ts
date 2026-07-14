@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { env } from "../../config/env";
-import { AppError } from "../../shared/errors/AppError";
-import * as authRepo from "./auth.repository";
+import { env } from "../../config/env.js";
+import { AppError } from "../../shared/errors/AppError.js";
+import * as authRepo from "./auth.repository.js";
 
 function createToken(userId: string): string {
     return jwt.sign({ userId }, env.JWT_SECRET, { expiresIn: "30d" });
