@@ -1,0 +1,248 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth ──────────────────────────────────────────────
+
+model User {
+  id                 String       @id @default(cuid())
+  email              String       @unique
+  name               String?
+  passwordHash       String?
+  image              String?
+  role               Role         @default(USER)
+  referralCode       String       @unique @default(cuid())
+  walletBalance      Int          @default(0)
+  isPremiumActive    Boolean      @default(false)
+  currentPremiumTier PremiumTier?
+  premiumExpiryDate  DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  sessions  Session[]
+  accounts  Account[]
+  purchases PremiumPurchase[]
+
+  referredById  String?
+  referredBy    User?   @relation("Referrer", fields: [referredById], references: [id])
+  referredUsers User[]  @relation("Referrer")
+
+  referralRewardsGiven  ReferralReward[] @relation("ReferrerReward")
+  referralRewardsEarned ReferralReward[] @relation("RefereeReward")
+
+  questionProgress    QuestionProgress[]
+  experiences         Experience[]
+  approvedExperiences Experience[]       @relation("Approver")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Account {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String
+  providerAccountId String
+  accessToken       String?
+  refreshToken      String?
+  expiresAt         DateTime?
+
+  @@unique([provider, providerAccountId])
+}
+
+// ─── Questions ─────────────────────────────────────────
+
+model Language {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  icon      String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  questionSets QuestionSet[]
+}
+
+model Field {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  icon      String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  questionSets QuestionSet[]
+}
+
+model QuestionSet {
+  id             String   @id @default(cuid())
+  title          String
+  description    String?
+  languageId     String
+  language       Language @relation(fields: [languageId], references: [id])
+  fieldId        String
+  field          Field    @relation(fields: [fieldId], references: [id])
+  isPremium      Boolean  @default(false)
+  totalQuestions Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  questions Question[]
+
+  @@unique([languageId, fieldId])
+}
+
+model Question {
+  id            String      @id @default(cuid())
+  content       String
+  answer        String
+  difficulty    Difficulty  @default(MEDIUM)
+  tags          String[]    @default([])
+  questionSetId String
+  questionSet   QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+  order         Int
+  createdAt     DateTime    @default(now())
+
+  progress QuestionProgress[]
+}
+
+model QuestionProgress {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  isBookmarked Boolean  @default(false)
+  isSolved     Boolean  @default(false)
+  viewedAt     DateTime @default(now())
+
+  @@unique([userId, questionId])
+}
+
+// ─── Premium & Payments ────────────────────────────────
+
+enum PremiumTier {
+  TIER_1
+  TIER_2
+  TIER_3
+}
+
+model PremiumPurchase {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  tier              PremiumTier
+  durationMonths    Int
+  amountPaid        Int
+  discountApplied   Int           @default(0)
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  paymentStatus     PaymentStatus @default(PENDING)
+  referralCodeUsed  String?
+  referralDiscount  Int           @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model DiscountCoupon {
+  id         String       @id @default(cuid())
+  code       String       @unique
+  type       DiscountType
+  value      Int
+  maxUses    Int?
+  usedCount  Int          @default(0)
+  validUntil DateTime
+  isActive   Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+// ─── Referral ─────────────────────────────────────────
+
+model ReferralReward {
+  id         String       @id @default(cuid())
+  referrerId String
+  referrer   User         @relation("ReferrerReward", fields: [referrerId], references: [id])
+  refereeId  String
+  referee    User         @relation("RefereeReward", fields: [refereeId], references: [id])
+  amount     Int
+  status     RewardStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+}
+
+enum RewardStatus {
+  PENDING
+  CREDITED
+  EXPIRED
+}
+
+// ─── Interview Experiences ────────────────────────────
+
+model Experience {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id])
+  title          String
+  company        String
+  role           String
+  content        String
+  status         ExperienceStatus @default(PENDING)
+  rejectedReason String?
+  approvedById   String?
+  approvedBy     User?            @relation("Approver", fields: [approvedById], references: [id])
+  views          Int              @default(0)
+  likes          Int              @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+enum ExperienceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─── Common Enums ─────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
