@@ -2,14 +2,13 @@ import { Router } from "express";
 import { validate } from "../../middleware/validate.middleware";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { registerSchema, loginSchema, googleLoginSchema } from "./auth.validation";
-import { AuthController } from "./auth.controller";
+import * as authController from "./auth.controller";
 
 const router = Router();
-const controller = new AuthController();
 
-router.post("/register", validate(registerSchema), (req, res, next) => controller.register(req, res, next));
-router.post("/login", validate(loginSchema), (req, res, next) => controller.login(req, res, next));
-router.post("/google", validate(googleLoginSchema), (req, res, next) => controller.googleLogin(req, res, next));
-router.get("/me", authMiddleware, (req, res, next) => controller.me(req, res, next));
+router.post("/register", validate(registerSchema), authController.register);
+router.post("/login", validate(loginSchema), authController.login);
+router.post("/google", validate(googleLoginSchema), authController.googleLogin);
+router.get("/me", authMiddleware, authController.me);
 
 export default router;
