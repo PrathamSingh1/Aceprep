@@ -2,81 +2,81 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env";
 import { AppError } from "../../shared/errors/AppError";
-import { AuthRepository } from "./auth.repository";
+import * as authRepo from "./auth.repository";
 
-export class AuthService {
-    private repo = new AuthRepository();
+function createToken(userId: string): string {
+    return jwt.sign({ userId }, env.JWT_SECRET, { expiresIn: "30d" });
+}
 
-    async register(data: { name: string; email: string; password: string }) {
-        const existing = await this.repo.findByEmail(data.email);
-        if (existing) throw new AppError("Email already registered");
+function sanitize(user: any) {
+    const { passwordHash, ...rest } = user;
+    return rest;
+}
 
-        const passwordHash = await bcrypt.hash(data.password, 12);
-        const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+function generateReferralCode(): string {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
 
-        const user = await this.repo.create({
-            email: data.email,
-            name: data.name,
-            passwordHash,
+export async function register(data: { name: string; email: string; password: string }) {
+    const existing = await authRepo.findByEmail(data.email);
+    if (existing) throw new AppError("Email already registered");
+
+    const passwordHash = await bcrypt.hash(data.password, 12);
+    const referralCode = generateReferralCode();
+
+    const user = await authRepo.createUser({
+        email: data.email,
+        name: data.name,
+        passwordHash,
+        referralCode,
+    });
+
+    const token = createToken(user.id);
+    return { user: sanitize(user), token };
+}
+
+export async function login(email: string, password: string) {
+    const user = await authRepo.findByEmail(email);
+    if (!user || !user.passwordHash) {
+        throw new AppError("Invalid credentials");
+    }
+
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) throw new AppError("Invalid credentials");
+
+    const token = createToken(user.id);
+    return { user: sanitize(user), token };
+}
+
+export async function loginWithGoogle(idToken: string) {
+    const { OAuth2Client } = await import("google-auth-library");
+    const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+
+    const ticket = await client.verifyIdToken({
+        idToken,
+        audience: env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload()!;
+
+    let user = await authRepo.findByEmail(payload.email!);
+    if (!user) {
+        const referralCode = generateReferralCode();
+        user = await authRepo.createUser({
+            email: payload.email!,
+            name: payload.name,
+            image: payload.picture,
             referralCode,
         });
-
-        const token = this.createToken(user.id);
-        return { user: this.sanitize(user), token };
     }
 
-    async login(email: string, password: string) {
-        const user = await this.repo.findByEmail(email);
-        if (!user || !user.passwordHash) {
-            throw new AppError("Invalid credentials");
-        }
+    await authRepo.upsertAccount(user.id, "google", payload.sub!);
 
-        const valid = await bcrypt.compare(password, user.passwordHash);
-        if (!valid) throw new AppError("Invalid credentials");
+    const token = createToken(user.id);
+    return { user: sanitize(user), token };
+}
 
-        const token = this.createToken(user.id);
-        return { user: this.sanitize(user), token };
-    }
-
-    async loginWithGoogle(idToken: string) {
-        const { OAuth2Client } = await import("google-auth-library");
-        const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
-
-        const ticket = await client.verifyIdToken({
-            idToken,
-            audience: env.GOOGLE_CLIENT_ID,
-        });
-        const payload = ticket.getPayload()!;
-
-        let user = await this.repo.findByEmail(payload.email!);
-        if (!user) {
-            const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-            user = await this.repo.create({
-                email: payload.email!,
-                name: payload.name,
-                image: payload.picture,
-                referralCode,
-            });
-        }
-
-        await this.repo.upsertAccount(user.id, "google", payload.sub!);
-
-        const token = this.createToken(user.id);
-        return { user: this.sanitize(user), token };
-    }
-
-    async getMe(userId: string) {
-        const user = await this.repo.findById(userId);
-        if (!user) throw new AppError("User not found");
-        return this.sanitize(user);
-    }
-
-    private createToken(userId: string): string {
-        return jwt.sign({ userId }, env.JWT_SECRET, { expiresIn: "30d" });
-    }
-
-    private sanitize(user: any) {
-        const { passwordHash, ...rest } = user;
-        return rest;
-    }
+export async function getMe(userId: string) {
+    const user = await authRepo.findById(userId);
+    if (!user) throw new AppError("User not found");
+    return sanitize(user);
 }
