@@ -2,6 +2,7 @@ import exrpess from "express";
 import cors from "cors";
 import helmet from "helmet";
 
+
 const app = exrpess();
 
 app.use(helmet());
@@ -11,5 +12,6 @@ app.use(cors({
 app.use(exrpess.json());
 
 // routes 
+app.use("/api/v1");
 
 export default app;
