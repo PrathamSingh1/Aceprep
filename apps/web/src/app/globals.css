@@ -5,11 +5,22 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --shadow-brand: -32px 34px 27px 0px rgba(0,0,0,0.01),
+                  -22px 25px 25px 0px rgba(0,0,0,0.04),
+                  -14px 12px 21px 0px rgba(0,0,0,0.15),
+                  -8px 4px 16px 0px rgba(0,0,0,0.25),
+                  -2px 2px 9px 0px rgba(0,0,0,0.25)
+
 }
 
 .dark {
   --background: #171717;
   --foreground: #ffffff;
+  --shadow-brand:  -32px 34px 27px 0px rgba(255,255,255,0.01),
+                  -22px 25px 25px 0px rgba(255,255,255,0.04),
+                  -14px 12px 21px 0px rgba(255,255,255,0.15),
+                  -8px 4px 16px 0px rgba(255,255,255,0.25),
+                  -2px 2px 9px 0px rgba(255,255,255,0.25)
 }
 
 @theme inline {
@@ -17,6 +28,7 @@
   --color-foreground: var(--foreground);
   --font-manrope: var(--font-manrope);
   --font-inter: var(--font-inter);
+  --shadow-brand: var(--shadow-brand);
 }
 
 
