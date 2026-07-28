@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import apiClient from "@/lib/api-client";
 import { Logo } from "./logo";
 import { Container } from "./container";
+import { ThemeToggle } from "../theme/theme-toggle";
 
 export function Navbar() {
   const [user, setUser] = useState<any>(null);
@@ -62,6 +63,9 @@ export function Navbar() {
           <Link href="/login" className="text-sm text-neutral-600 dark:text-neutral-400 font-medium">Login</Link>
           <Link href="/register" className="text-sm text-neutral-200 px-4 py-1 bg-foreground dark:bg-background dark:text-neutral-800 rounded-lg active:scale-[0.97] hover:shadow-brand dark:hover:shadow-brand transition-all duration-200">Signup</Link>
           </div>
+          <div className="">
+              <ThemeToggle />
+            </div>
         </div>
       </Container>
     </nav>
