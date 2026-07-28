@@ -61,11 +61,11 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-4 border-l-2 border-neutral-300 dark:border-neutral-800 pl-4 py-0">
           <Link href="/login" className="text-sm text-neutral-600 dark:text-neutral-400 font-medium">Login</Link>
-          <Link href="/register" className="text-sm text-neutral-200 px-4 py-1 bg-foreground dark:bg-background dark:text-neutral-800 rounded-lg active:scale-[0.97] hover:shadow-brand dark:hover:shadow-brand transition-all duration-200">Signup</Link>
+          <Link href="/register" className="text-sm text-neutral-200 px-4 py-1 bg-foreground dark:text-neutral-800 dark:font-medium rounded-lg active:scale-[0.97] hover:shadow-brand dark:hover:shadow-brand transition-all duration-200">Signup</Link>
           </div>
-          <div className="">
+          <div>
               <ThemeToggle />
-            </div>
+          </div>
         </div>
       </Container>
     </nav>
