@@ -75,7 +75,6 @@ model Language {
   id        String   @id @default(cuid())
   name      String   @unique
   slug      String   @unique
-  icon      String?
   sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -87,12 +86,12 @@ model Field {
   id        String   @id @default(cuid())
   name      String   @unique
   slug      String   @unique
-  icon      String?
   sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
   questionSets QuestionSet[]
+  questions    Question[]
 }
 
 model QuestionSet {
@@ -123,6 +122,8 @@ model Question {
   questionSet   QuestionSet? @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
   categoryId    String?
   category      Category?    @relation(fields: [categoryId], references: [id])
+  fieldId       String?
+  field         Field?       @relation(fields: [fieldId], references: [id])
   order         Int
   createdAt     DateTime     @default(now())
 
@@ -130,6 +131,7 @@ model Question {
 
   @@index([questionSetId])
   @@index([categoryId])
+  @@index([fieldId])
   @@index([difficulty])
 }
 
@@ -152,7 +154,6 @@ model Category {
   id          String     @id @default(cuid())
   name        String
   slug        String     @unique
-  icon        String?
   description String?
   parentId    String?
   parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])

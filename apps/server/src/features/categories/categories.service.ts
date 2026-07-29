@@ -6,7 +6,7 @@ export async function getCategoryTree() {
 
 export async function getCategoryQuestions(
     slug: string,
-    filters: { page?: number; difficulty?: string },
+    filters: { page?: number; difficulty?: string; fieldId?: string },
     userId?: string
 ) {
     const PAGE_SIZE = 10;
@@ -16,6 +16,7 @@ export async function getCategoryQuestions(
         skip: (page - 1) * PAGE_SIZE,
         take: PAGE_SIZE,
         difficulty: filters.difficulty,
+        fieldId: filters.fieldId,
     });
 
     const totalPages = Math.ceil(total / PAGE_SIZE);

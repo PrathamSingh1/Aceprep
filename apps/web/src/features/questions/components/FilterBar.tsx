@@ -30,7 +30,7 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
         <option value="">All Languages</option>
         {languages.map((lang) => (
           <option key={lang.id} value={lang.id}>
-            {lang.icon} {lang.name}
+            {lang.name}
           </option>
         ))}
       </select>
@@ -43,7 +43,7 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
         <option value="">All Fields</option>
         {fields.map((field) => (
           <option key={field.id} value={field.id}>
-            {field.icon} {field.name}
+            {field.name}
           </option>
         ))}
       </select>

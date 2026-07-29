@@ -27,7 +27,7 @@ export function QuestionRow({ question, index }: QuestionRowProps) {
           {question.content}
         </span>
         <span className="text-sm text-gray-600 hidden sm:block">
-          {question.questionSet?.language?.name}
+          {question.questionSet?.language?.name || question.category?.name}
         </span>
         <span
           className={`text-xs px-2 py-1 rounded-full ${difficultyColors[question.difficulty] || ""}`}

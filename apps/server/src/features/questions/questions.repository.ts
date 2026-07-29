@@ -44,6 +44,7 @@ export async function findQuestions(where: any, options: { skip: number; take: n
             questionSet: {
                 include: { language: true, field: true },
             },
+            category: true,
         },
     });
 }

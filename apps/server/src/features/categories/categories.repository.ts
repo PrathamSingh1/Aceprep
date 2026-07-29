@@ -23,7 +23,7 @@ export async function findCategoryBySlug(slug: string) {
 
 export async function findQuestionsByCategorySlug(
     slug: string,
-    options: { skip: number; take: number; difficulty?: string }
+    options: { skip: number; take: number; difficulty?: string; fieldId?: string }
 ) {
     const category = await prisma.category.findUnique({ where: { slug } });
     if (!category) return { questions: [], total: 0 };
@@ -38,6 +38,7 @@ export async function findQuestionsByCategorySlug(
         categoryId: { in: categoryIds },
     };
     if (options.difficulty) where.difficulty = options.difficulty;
+    if (options.fieldId) where.fieldId = options.fieldId;
 
     const [questions, total] = await Promise.all([
         prisma.question.findMany({
@@ -47,6 +48,7 @@ export async function findQuestionsByCategorySlug(
             orderBy: { order: "asc" },
             include: {
                 category: true,
+                field: true,
                 progress: true,
             },
         }),

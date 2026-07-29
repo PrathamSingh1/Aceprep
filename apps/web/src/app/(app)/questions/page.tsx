@@ -1,5 +1,5 @@
-import { QuestionsPage } from "@/features/questions/components/QuestionsPage";
+import { redirect } from "next/navigation";
 
 export default function Questions() {
-  return <QuestionsPage />;
+  redirect("/browse/interview-questions");
 }
