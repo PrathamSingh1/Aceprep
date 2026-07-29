@@ -151,7 +151,7 @@ model QuestionProgress {
 model Category {
   id          String     @id @default(cuid())
   name        String
-  slug        String
+  slug        String     @unique
   icon        String?
   description String?
   parentId    String?
