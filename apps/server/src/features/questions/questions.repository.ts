@@ -18,6 +18,7 @@ export async function countQuestions(where: any) {
     }
     if (where.difficulty) prismaWhere.difficulty = where.difficulty;
     if (where.search) prismaWhere.content = { contains: where.search, mode: "insensitive" };
+    if (where.categoryId) prismaWhere.categoryId = where.categoryId;
 
     return prisma.question.count({ where: prismaWhere });
 }
@@ -32,6 +33,7 @@ export async function findQuestions(where: any, options: { skip: number; take: n
     }
     if (where.difficulty) prismaWhere.difficulty = where.difficulty;
     if (where.search) prismaWhere.content = { contains: where.search, mode: "insensitive" };
+    if (where.categoryId) prismaWhere.categoryId = where.categoryId;
 
     return prisma.question.findMany({
         where: prismaWhere,

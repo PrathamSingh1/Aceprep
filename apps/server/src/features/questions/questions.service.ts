@@ -14,6 +14,7 @@ export async function getQuestions(
         languageId?: string;
         fieldId?: string;
         difficulty?: string;
+        categoryId?: string;
         search?: string;
         page?: number;
     },
@@ -26,6 +27,7 @@ export async function getQuestions(
     if (filters.languageId) where.languageId = filters.languageId;
     if (filters.fieldId) where.fieldId = filters.fieldId;
     if (filters.difficulty) where.difficulty = filters.difficulty;
+    if (filters.categoryId) where.categoryId = filters.categoryId;
     if (filters.search) where.search = filters.search;
 
     const totalQuestions = await questionsRepo.countQuestions(where);
