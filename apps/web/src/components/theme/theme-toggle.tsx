@@ -41,7 +41,7 @@ export const ThemeToggle = () => {
     }
   }
   return (
-    <button onClick={switchTheme} className='size-4 flex items-center justify-center relative rounded-md bg-neutral-300 dark:bg-neutral-800 p-4'>
+    <button onClick={switchTheme} className='size-4 flex items-center justify-center relative rounded-md bg-neutral-300 dark:bg-neutral-800 p-4 cursor-pointer active:scale-[0.97]'>
       <IconSun size={14} className='rotate-0 absolute scale-100 transition-all duration-200 dark:rotate-90 dark:scale-0' />
       <IconMoon size={14} className='rotate-90 absolute scale-0 transition-all duration-200 dark:rotate-0 dark:scale-100' />
     </button>

@@ -1,4 +1,4 @@
-import  Metadata  from "next";
+import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/theme-provider";
@@ -18,7 +18,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Aceprep",
-  description: "Aceprep is a platform for developers to prepare for technical interviews and learn about the latest industry trends",
+  description:
+    "Aceprep is a platform for developers to prepare for technical interviews and learn about the latest industry trends",
 };
 
 export default function RootLayout({
@@ -29,14 +30,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} ${inter.variable} h-full antialiased`} suppressHydrationWarning
+      className={`${manrope.variable} ${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <Navbar />
-          <main className="bg-background text-foreground">
-            {children}
-          </main>
+          <main className="bg-background text-foreground">{children}</main>
         </ThemeProvider>
       </body>
     </html>
