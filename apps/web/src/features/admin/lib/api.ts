@@ -33,4 +33,19 @@ export const adminApi = {
     getCoupons: () => apiClient.get("/admin/coupons"),
     createCoupon: (data: any) => apiClient.post("/admin/coupons", data),
     deleteCoupon: (id: string) => apiClient.delete(`/admin/coupons/${id}`),
+
+    // Companies
+    getCompanies: (params?: { search?: string; page?: number }) =>
+        apiClient.get("/admin/companies", { params }),
+    createCompany: (data: { name: string; slug: string; logo?: string; website?: string }) =>
+        apiClient.post("/admin/companies", data),
+    updateCompany: (id: string, data: any) => apiClient.patch(`/admin/companies/${id}`, data),
+    deleteCompany: (id: string) => apiClient.delete(`/admin/companies/${id}`),
+
+    // Jobs
+    getJobs: (params?: { search?: string; type?: string; companyId?: string; page?: number }) =>
+        apiClient.get("/admin/jobs", { params }),
+    createJob: (data: any) => apiClient.post("/admin/jobs", data),
+    updateJob: (id: string, data: any) => apiClient.patch(`/admin/jobs/${id}`, data),
+    deleteJob: (id: string) => apiClient.delete(`/admin/jobs/${id}`),
 };

@@ -23,7 +23,7 @@ export async function findCategoryBySlug(slug: string) {
 
 export async function findQuestionsByCategorySlug(
     slug: string,
-    options: { skip: number; take: number; difficulty?: string; fieldId?: string }
+    options: { skip: number; take: number; difficulty?: string; fieldId?: string; tag?: string; userId?: string }
 ) {
     const category = await prisma.category.findUnique({ where: { slug } });
     if (!category) return { questions: [], total: 0 };
@@ -39,6 +39,7 @@ export async function findQuestionsByCategorySlug(
     };
     if (options.difficulty) where.difficulty = options.difficulty;
     if (options.fieldId) where.fieldId = options.fieldId;
+    if (options.tag) where.tags = { has: options.tag };
 
     const [questions, total] = await Promise.all([
         prisma.question.findMany({
@@ -49,13 +50,20 @@ export async function findQuestionsByCategorySlug(
             include: {
                 category: true,
                 field: true,
-                progress: true,
+                ...(options.userId ? { progress: { where: { userId: options.userId }, take: 1 } } : {}),
             },
         }),
         prisma.question.count({ where }),
     ]);
 
-    return { questions, total };
+    const flattened = questions.map((q: any) => ({
+        ...q,
+        isBookmarked: q.progress?.[0]?.isBookmarked || false,
+        isSolved: q.progress?.[0]?.isSolved || false,
+        progress: undefined,
+    }));
+
+    return { questions: flattened, total };
 }
 
 export async function countQuestionsByCategory(categoryIds: string[], difficulty?: string) {

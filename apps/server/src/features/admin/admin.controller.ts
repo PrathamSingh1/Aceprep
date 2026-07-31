@@ -185,3 +185,89 @@ export async function deleteCoupon(req: Request, res: Response, next: NextFuncti
         next(error);
     }
 }
+
+// ─── Companies ────────────────────────────────────
+
+export async function getCompanies(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { search, page } = req.query;
+        const result = await adminService.getCompanies({
+            search: search as string,
+            page: page ? parseInt(page as string) : 1,
+        });
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function createCompany(req: Request, res: Response, next: NextFunction) {
+    try {
+        const company = await adminService.createCompany(req.body);
+        res.json({ success: true, data: company });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function updateCompany(req: Request, res: Response, next: NextFunction) {
+    try {
+        const company = await adminService.updateCompany(req.params.id, req.body);
+        res.json({ success: true, data: company });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function deleteCompany(req: Request, res: Response, next: NextFunction) {
+    try {
+        await adminService.deleteCompany(req.params.id);
+        res.json({ success: true, message: "Company deleted" });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// ─── Jobs ─────────────────────────────────────────
+
+export async function getJobs(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { search, type, companyId, page } = req.query;
+        const result = await adminService.getJobs({
+            search: search as string,
+            type: type as string,
+            companyId: companyId as string,
+            page: page ? parseInt(page as string) : 1,
+        });
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function createJob(req: Request, res: Response, next: NextFunction) {
+    try {
+        const job = await adminService.createJob(req.body);
+        res.json({ success: true, data: job });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function updateJob(req: Request, res: Response, next: NextFunction) {
+    try {
+        const job = await adminService.updateJob(req.params.id, req.body);
+        res.json({ success: true, data: job });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function deleteJob(req: Request, res: Response, next: NextFunction) {
+    try {
+        await adminService.deleteJob(req.params.id);
+        res.json({ success: true, message: "Job deleted" });
+    } catch (error) {
+        next(error);
+    }
+}

@@ -189,12 +189,22 @@ model Job {
   location    String?
   description String?
   applyUrl    String?
+  salaryMin   Int?
+  salaryMax   Int?
+  isRemote    Boolean  @default(false)
+  isStartup   Boolean  @default(false)
+  isHFT       Boolean  @default(false)
+  tags        String[] @default([])
+  postedAt    DateTime @default(now())
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([companyId])
   @@index([type])
+  @@index([isRemote])
+  @@index([isStartup])
+  @@index([isHFT])
 }
 
 enum JobType {

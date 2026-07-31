@@ -1,12 +1,15 @@
 import { BrowsePage } from "@/features/browse/components/BrowsePage";
+import { HiringPage } from "@/features/hiring/components/HiringPage";
+import { CompaniesGrid } from "@/features/hiring/components/CompaniesGrid";
 
-const categoryMeta: Record<string, { title: string; description: string }> = {
-  "all-jobs": { title: "All Jobs", description: "Browse all job openings" },
+const categoryMeta: Record<string, { title: string; description: string; type?: string }> = {
+  "all-jobs": { title: "All Jobs", description: "Browse all job openings from top companies", type: "hiring-full" },
   internships: {
-    title: "Internships",
-    description: "Find internship opportunities",
+    title: "Internship Openings",
+    description: "Find and apply to internships from startups and companies",
+    type: "hiring-intern",
   },
-  companies: { title: "Companies", description: "Explore top companies" },
+  companies: { title: "Companies", description: "Explore companies hiring across jobs and internships", type: "hiring-companies" },
   "interview-questions": {
     title: "Interview Questions",
     description: "Prepare for interviews with curated questions",
@@ -68,6 +71,18 @@ export default async function BrowseSlugPage({
 }) {
   const { slug } = await params;
   const meta = categoryMeta[slug] || { title: slug, description: "" };
+
+  if (meta.type === "hiring-full") {
+    return <HiringPage type="FULL_TIME" title={meta.title} description={meta.description} />;
+  }
+
+  if (meta.type === "hiring-intern") {
+    return <HiringPage type="INTERNSHIP" title={meta.title} description={meta.description} />;
+  }
+
+  if (meta.type === "hiring-companies") {
+    return <CompaniesGrid />;
+  }
 
   return (
     <BrowsePage

@@ -123,3 +123,43 @@ export async function createCoupon(data: {
 export async function deleteCoupon(id: string) {
     return adminRepo.deleteCoupon(id);
 }
+
+// ─── Companies ────────────────────────────────────
+
+export async function getCompanies(params: { search?: string; page?: number }) {
+    const page = params.page || 1;
+    const pageSize = 20;
+    return adminRepo.findAllCompanies({ search: params.search, page, pageSize });
+}
+
+export async function createCompany(data: { name: string; slug: string; logo?: string; website?: string }) {
+    return adminRepo.createCompany(data);
+}
+
+export async function updateCompany(id: string, data: any) {
+    return adminRepo.updateCompany(id, data);
+}
+
+export async function deleteCompany(id: string) {
+    return adminRepo.deleteCompany(id);
+}
+
+// ─── Jobs ─────────────────────────────────────────
+
+export async function getJobs(params: { search?: string; type?: string; companyId?: string; page?: number }) {
+    const page = params.page || 1;
+    const pageSize = 20;
+    return adminRepo.findJobs({ ...params, page, pageSize });
+}
+
+export async function createJob(data: any) {
+    return adminRepo.createJob(data);
+}
+
+export async function updateJob(id: string, data: any) {
+    return adminRepo.updateJob(id, data);
+}
+
+export async function deleteJob(id: string) {
+    return adminRepo.deleteJob(id);
+}

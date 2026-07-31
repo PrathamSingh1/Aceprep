@@ -114,3 +114,23 @@ export function useAdminCoupons() {
 
     return { coupons, loading, refetch: fetchCoupons };
 }
+
+export function useAdminCompanies() {
+    const [data, setData] = useState<any>({ companies: [], total: 0, totalPages: 0 });
+    const [loading, setLoading] = useState(true);
+    const [filters, setFilters] = useState({ search: "", page: 1 });
+
+    const fetchCompanies = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await adminApi.getCompanies(filters);
+            setData(res.data.data);
+        } catch {} finally {
+            setLoading(false);
+        }
+    }, [filters.search, filters.page]);
+
+    useEffect(() => { fetchCompanies(); }, [fetchCompanies]);
+
+    return { ...data, loading, filters, setFilters, refetch: fetchCompanies };
+}

@@ -36,4 +36,16 @@ router.get("/coupons", adminController.getCoupons);
 router.post("/coupons", adminController.createCoupon);
 router.delete("/coupons/:id", adminController.deleteCoupon);
 
+// ─── Companies ────────────────────────────────────
+router.get("/companies", adminController.getCompanies);
+router.post("/companies", adminController.createCompany);
+router.patch("/companies/:id", adminController.updateCompany);
+router.delete("/companies/:id", adminController.deleteCompany);
+
+// ─── Jobs ─────────────────────────────────────────
+router.get("/jobs", adminController.getJobs);
+router.post("/jobs", adminController.createJob);
+router.patch("/jobs/:id", adminController.updateJob);
+router.delete("/jobs/:id", adminController.deleteJob);
+
 export default router;

@@ -247,3 +247,108 @@ export async function createCoupon(data: {
 export async function deleteCoupon(id: string) {
     return prisma.discountCoupon.delete({ where: { id } });
 }
+
+// ─── Companies ────────────────────────────────────
+
+export async function findAllCompanies(params: { search?: string; page: number; pageSize: number }) {
+    const where: any = {};
+    if (params.search) {
+        where.OR = [
+            { name: { contains: params.search, mode: "insensitive" } },
+            { slug: { contains: params.search, mode: "insensitive" } },
+        ];
+    }
+
+    const [companies, total] = await Promise.all([
+        prisma.company.findMany({
+            where,
+            skip: (params.page - 1) * params.pageSize,
+            take: params.pageSize,
+            orderBy: { createdAt: "desc" },
+            include: { _count: { select: { jobs: true } } },
+        }),
+        prisma.company.count({ where }),
+    ]);
+
+    return { companies, total, totalPages: Math.ceil(total / params.pageSize) };
+}
+
+export async function createCompany(data: { name: string; slug: string; logo?: string; website?: string }) {
+    return prisma.company.create({ data });
+}
+
+export async function updateCompany(id: string, data: { name?: string; slug?: string; logo?: string; website?: string }) {
+    return prisma.company.update({ where: { id }, data });
+}
+
+export async function deleteCompany(id: string) {
+    return prisma.company.delete({ where: { id } });
+}
+
+// ─── Jobs ─────────────────────────────────────────
+
+export async function findJobs(params: { search?: string; type?: string; companyId?: string; page: number; pageSize: number }) {
+    const where: any = {};
+    if (params.type) where.type = params.type;
+    if (params.companyId) where.companyId = params.companyId;
+    if (params.search) {
+        where.OR = [
+            { title: { contains: params.search, mode: "insensitive" } },
+            { company: { name: { contains: params.search, mode: "insensitive" } } },
+        ];
+    }
+
+    const [jobs, total] = await Promise.all([
+        prisma.job.findMany({
+            where,
+            skip: (params.page - 1) * params.pageSize,
+            take: params.pageSize,
+            orderBy: { postedAt: "desc" },
+            include: { company: { select: { id: true, name: true, slug: true } } },
+        }),
+        prisma.job.count({ where }),
+    ]);
+
+    return { jobs, total, totalPages: Math.ceil(total / params.pageSize) };
+}
+
+export async function createJob(data: {
+    title: string;
+    companyId: string;
+    type: string;
+    location?: string;
+    description?: string;
+    applyUrl?: string;
+    salaryMin?: number;
+    salaryMax?: number;
+    isRemote?: boolean;
+    isStartup?: boolean;
+    isHFT?: boolean;
+    tags?: string[];
+}) {
+    return prisma.job.create({
+        data: {
+            title: data.title,
+            companyId: data.companyId,
+            type: data.type as any,
+            location: data.location || null,
+            description: data.description || null,
+            applyUrl: data.applyUrl || null,
+            salaryMin: data.salaryMin || null,
+            salaryMax: data.salaryMax || null,
+            isRemote: data.isRemote || false,
+            isStartup: data.isStartup || false,
+            isHFT: data.isHFT || false,
+            tags: data.tags || [],
+        },
+    });
+}
+
+export async function updateJob(id: string, data: any) {
+    if (data.type) data.type = data.type as any;
+    return prisma.job.update({ where: { id }, data });
+}
+
+export async function deleteJob(id: string) {
+    return prisma.job.delete({ where: { id } });
+}

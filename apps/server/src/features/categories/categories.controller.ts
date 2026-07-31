@@ -19,12 +19,12 @@ export async function getCategoryQuestions(req: Request, res: Response, next: Ne
             return;
         }
 
-        const { page, difficulty, fieldId } = req.query;
+        const { page, difficulty, fieldId, tag } = req.query;
         const userId = (req as any).user?.id;
 
         const result = await categoriesService.getCategoryQuestions(
             slug,
-            { page: page ? parseInt(page as string) : 1, difficulty: difficulty as string, fieldId: fieldId as string },
+            { page: page ? parseInt(page as string) : 1, difficulty: difficulty as string, fieldId: fieldId as string, tag: tag as string },
             userId
         );
         res.json({ success: true, data: result });
