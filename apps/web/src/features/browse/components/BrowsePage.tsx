@@ -215,7 +215,7 @@ export function BrowsePage({
                             className={cn(
                               "h-1 w-1 rounded-full",
                               value === "EASY" && "bg-green-500",
-                              value === "MEDIUM" && "bg-purple-500",
+                              value === "MEDIUM" && "bg-yellow-500",
                               value === "HARD" && "bg-red-500",
                             )}
                           />
