@@ -42,7 +42,9 @@ export function BrowsePage({
       if (filters.difficulty) params.difficulty = filters.difficulty;
       if (filters.tag) params.tag = filters.tag;
 
-      const res = await apiClient.get(`/categories/${categorySlug}/questions`, { params });
+      const res = await apiClient.get(`/categories/${categorySlug}/questions`, {
+        params,
+      });
       setQuestions(res.data.data.questions);
       setPagination(res.data.data.pagination);
     } catch {
@@ -74,7 +76,10 @@ export function BrowsePage({
     return "";
   };
 
-  const getFilterOptions = (filterKey: string, options?: { label: string; value: string }[]) => {
+  const getFilterOptions = (
+    filterKey: string,
+    options?: { label: string; value: string }[],
+  ) => {
     if (filterKey === "fieldId" && fields.length > 0) {
       return fields.map((f: any) => ({ label: f.name, value: f.id }));
     }
@@ -90,9 +95,10 @@ export function BrowsePage({
   };
 
   const difficultyColors: Record<string, string> = {
-    EASY: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-    MEDIUM: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-    HARD: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+    EASY: "bg-neutral-100 dark:bg-neutral-900 border-1 dark:border-neutral-900 border-neutral-200",
+    MEDIUM:
+      "bg-neutral-100 dark:bg-neutral-900 border-1 dark:border-neutral-900 border-neutral-200",
+    HARD: "bg-neutral-100 dark:bg-neutral-900 border-1 dark:border-neutral-900 border-neutral-200",
   };
 
   const colCount = config.columns.length + 3;
@@ -110,7 +116,7 @@ export function BrowsePage({
         placeholder={`Search ${title.toLowerCase()}...`}
         value={filters.search || ""}
         onChange={(e) => handleFilterChange("search", e.target.value)}
-        className="w-full px-4 py-2.5 mb-4 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-2.5 mb-4 border border-neutral-200 dark:border-neutral-900 rounded-lg bg-background dark:background text-sm outline-none focus:ring-2 dark:focus:ring-neutral-900 focus:ring-neutral-100"
       />
 
       {/* Category-specific Filters */}
@@ -120,7 +126,7 @@ export function BrowsePage({
             key={f.key}
             value={getFilterValue(f.key)}
             onChange={(e) => handleFilterChange(f.key, e.target.value)}
-            className="px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-neutral-200 dark:border-neutral-900 rounded-lg text-sm bg-background dark:bg-background focus:outline-none focus:ring-2 dark:focus:ring-neutral-900 focus:ring-neutral-100"
           >
             <option value="">All {f.label}s</option>
             {getFilterOptions(f.key, f.options).map((opt) => (
@@ -145,41 +151,76 @@ export function BrowsePage({
         <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
           {/* Header */}
           <div
-            className="grid gap-2 px-4 py-2.5 bg-neutral-50 dark:bg-neutral-800 text-sm font-medium text-neutral-600 dark:text-neutral-400"
-            style={{ gridTemplateColumns: `40px 1fr ${config.columns.slice(1).map(() => "120px").join(" ")} 60px 60px` }}
+            className="grid gap-2 px-4 py-2.5 bg-neutral-50 dark:bg-background text-sm font-medium text-neutral-400 dark:text-neutral-500 border-b dark:border-neutral-800 border-neutral-200"
+            style={{
+              gridTemplateColumns: `40px 1fr ${config.columns
+                .slice(1)
+                .map(() => "120px")
+                .join(" ")} 60px 60px`,
+            }}
           >
-            <span>#</span>
+            <span className="text-xs text-neutral-400 dark:text-neutral-600">
+              #
+            </span>
             {config.columns.map((col) => (
               <span key={col.key}>{col.label}</span>
             ))}
-            <span>Solved</span>
-            <span>Save</span>
+            <span className="pl-2">Solved</span>
+            <span className="pl-4">Save</span>
           </div>
 
           {/* Rows */}
           {questions.map((q: any, i: number) => (
-            <div key={q.id} className="border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
+            <div
+              key={q.id}
+              className="border-b border-neutral-200 dark:border-neutral-800 last:border-b-0"
+            >
               <div
                 className="grid gap-2 items-center py-3 px-4 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
-                style={{ gridTemplateColumns: `40px 1fr ${config.columns.slice(1).map(() => "120px").join(" ")} 60px 60px` }}
+                style={{
+                  gridTemplateColumns: `40px 1fr ${config.columns
+                    .slice(1)
+                    .map(() => "120px")
+                    .join(" ")} 60px 60px`,
+                }}
                 onClick={() => setExpandedId(expandedId === q.id ? null : q.id)}
               >
                 <span className="text-sm text-neutral-500">{i + 1}</span>
-                {config.columns.map((col) => (
-                  <span
-                    key={col.key}
-                    className={cn(
-                      "text-sm",
-                      col.key === "content"
-                        ? "font-medium text-neutral-900 dark:text-neutral-100"
-                        : col.key === "difficulty"
-                          ? `text-xs px-2 py-1 rounded-full w-fit ${difficultyColors[getCellValue(q, col.key)] || ""}`
-                          : "text-neutral-600 dark:text-neutral-400"
-                    )}
-                  >
-                    {getCellValue(q, col.key)}
-                  </span>
-                ))}
+                {config.columns.map((col) => {
+                  const value = getCellValue(q, col.key);
+
+                  return (
+                    <span
+                      key={col.key}
+                      className={cn(
+                        "text-sm",
+                        col.key === "content"
+                          ? "font-medium text-neutral-900 dark:text-neutral-100"
+                          : col.key === "difficulty"
+                            ? `inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-xs w-fit ${
+                                difficultyColors[value] || ""
+                              }`
+                            : "text-neutral-600 dark:text-neutral-400",
+                      )}
+                    >
+                      {col.key === "difficulty" ? (
+                        <>
+                          <span
+                            className={cn(
+                              "h-1 w-1 rounded-full",
+                              value === "EASY" && "bg-green-500",
+                              value === "MEDIUM" && "bg-purple-500",
+                              value === "HARD" && "bg-red-500",
+                            )}
+                          />
+                          {value}
+                        </>
+                      ) : (
+                        value
+                      )}
+                    </span>
+                  );
+                })}
                 <button className="text-neutral-400 hover:text-neutral-600">
                   {q.isSolved ? "✅" : "☐"}
                 </button>
@@ -208,7 +249,12 @@ export function BrowsePage({
       {pagination.totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-6">
           <button
-            onClick={() => setFilters((prev) => ({ ...prev, page: String(Math.max(1, Number(prev.page) - 1)) }))}
+            onClick={() =>
+              setFilters((prev) => ({
+                ...prev,
+                page: String(Math.max(1, Number(prev.page) - 1)),
+              }))
+            }
             disabled={Number(filters.page) <= 1}
             className="px-3 py-1.5 text-sm rounded-lg border border-neutral-300 dark:border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
@@ -218,7 +264,12 @@ export function BrowsePage({
             Page {pagination.page} of {pagination.totalPages}
           </span>
           <button
-            onClick={() => setFilters((prev) => ({ ...prev, page: String(Number(prev.page) + 1) }))}
+            onClick={() =>
+              setFilters((prev) => ({
+                ...prev,
+                page: String(Number(prev.page) + 1),
+              }))
+            }
             disabled={Number(filters.page) >= pagination.totalPages}
             className="px-3 py-1.5 text-sm rounded-lg border border-neutral-300 dark:border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
