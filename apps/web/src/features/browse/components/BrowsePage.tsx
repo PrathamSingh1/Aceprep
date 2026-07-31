@@ -176,26 +176,32 @@ export function BrowsePage({
               className="border-b border-neutral-200 dark:border-neutral-800 last:border-b-0"
             >
               <div
-                className="grid gap-2 items-center py-3 px-4 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
+                className="grid gap-2 items-center py-3 px-4 font-manrope"
                 style={{
                   gridTemplateColumns: `40px 1fr ${config.columns
                     .slice(1)
                     .map(() => "120px")
                     .join(" ")} 60px 60px`,
                 }}
-                onClick={() => setExpandedId(expandedId === q.id ? null : q.id)}
               >
                 <span className="text-sm text-neutral-500">{i + 1}</span>
                 {config.columns.map((col) => {
                   const value = getCellValue(q, col.key);
+                  const isContent = col.key === "content";
 
                   return (
                     <span
                       key={col.key}
+                      onClick={
+                        isContent
+                          ? () =>
+                              setExpandedId(expandedId === q.id ? null : q.id)
+                          : undefined
+                      }
                       className={cn(
                         "text-sm",
                         col.key === "content"
-                          ? "font-medium text-neutral-900 dark:text-neutral-100"
+                          ? "font-medium text-neutral-900 dark:text-neutral-100 cursor-pointer"
                           : col.key === "difficulty"
                             ? `inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-xs w-fit ${
                                 difficultyColors[value] || ""
@@ -221,22 +227,35 @@ export function BrowsePage({
                     </span>
                   );
                 })}
-                <button className="text-neutral-400 hover:text-neutral-600">
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-neutral-400 hover:text-neutral-600"
+                >
                   {q.isSolved ? "✅" : "☐"}
                 </button>
-                <button className="text-neutral-400 hover:text-yellow-500">
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-neutral-400 hover:text-yellow-500"
+                >
                   {q.isBookmarked ? "🔖" : "☆"}
                 </button>
               </div>
 
               {/* Expanded answer */}
               {expandedId === q.id && (
-                <div className="px-4 pb-4 ml-10 mr-4 mb-2 bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4">
-                  <p className="text-sm font-medium text-neutral-500 mb-2">
-                    Answer:
-                  </p>
-                  <div className="whitespace-pre-wrap text-sm text-neutral-700 dark:text-neutral-300">
-                    {q.answer}
+                <div
+                  className="grid gap-2 -mt-[10px] px-4 pb-2"
+                  style={{
+                    gridTemplateColumns: `40px 1fr ${config.columns
+                      .slice(1)
+                      .map(() => "120px")
+                      .join(" ")} 60px 60px`,
+                  }}
+                >
+                  <div className="" style={{ gridColumn: "2" }}>
+                    <div className="whitespace-pre-wrap font-inter text-sm text-neutral-500 dark:text-neutral-500">
+                      {q.answer}
+                    </div>
                   </div>
                 </div>
               )}
