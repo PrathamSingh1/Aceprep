@@ -6,6 +6,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 import { ThemeToggle } from "../theme/theme-toggle";
+import { IconSearch } from "@tabler/icons-react";
 
 interface NavItem {
   title: string;
@@ -72,13 +73,15 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    hiring: true,
-    library: true,
-    "ai-ml": true,
-    "system-design": true,
-    fundamentals: true,
-  });
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+    {
+      hiring: true,
+      library: true,
+      "ai-ml": true,
+      "system-design": true,
+      fundamentals: true,
+    },
+  );
 
   const toggleGroup = (slug: string) => {
     setExpandedGroups((prev) => ({ ...prev, [slug]: !prev[slug] }));
@@ -97,8 +100,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-[260px] bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col transition-transform duration-300 lg:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed top-0 left-0 z-50 h-full w-[290px] bg-background dark:bg-background border-r border-neutral-200 dark:border-neutral-800 flex flex-col transition-transform duration-300 lg:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         {/* Logo */}
@@ -108,28 +111,31 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Search */}
-        <div className="p-3">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full px-3 py-2 text-sm bg-neutral-100 dark:bg-neutral-800 rounded-lg border-none outline-none placeholder:text-neutral-500"
-          />
+        <div className="px-2">
+          <div className="py-1 px-3 flex items-center bg-neutral-100 dark:bg-neutral-800 rounded-md">
+            <IconSearch size={16} />
+            <input
+              type="text"
+              placeholder="Search..."
+              className="w-full px-3 py-1 text-sm  border-none outline-none placeholder:text-neutral-500"
+            />
+          </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 pb-4">
+        <nav className="flex-1 overflow-y-auto px-3 pb-4 mt-2">
           {navigation.map((group) => (
             <div key={group.slug} className="mb-1">
               {/* Group header */}
               <button
                 onClick={() => toggleGroup(group.slug)}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                className="w-full flex items-center justify-between mt-4 px-3 py-1 text-sm font-medium text-neutral-800 border border-transparent dark:hover:border-neutral-800 hover:border-neutral-300 dark:text-neutral-300 hover:bg-neutral-200/60 dark:hover:bg-neutral-900 transition-colors"
               >
                 <span>{group.title}</span>
                 <svg
                   className={cn(
-                    "w-4 h-4 transition-transform duration-200",
-                    expandedGroups[group.slug] && "rotate-90"
+                    "w-4 h-4 transition-transform duration-300",
+                    expandedGroups[group.slug] && "rotate-90",
                   )}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -146,17 +152,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
               {/* Children */}
               {expandedGroups[group.slug] && group.children && (
-                <div className="ml-4 mt-0.5">
+                <div className="ml-4 mt-2">
                   {group.children.map((item) => (
                     <Link
                       key={item.slug}
                       href={`/browse/${item.slug}`}
                       onClick={onClose}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors",
+                        "flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors mt-1 ",
                         pathname.includes(item.slug)
-                          ? "bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white font-medium"
-                          : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                          ? "bg-neutral-200/60 dark:bg-neutral-900 border dark:border-neutral-800 border-neutral-300 text-neutral-900 dark:text-white"
+                          : "text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200/60 dark:hover:bg-neutral-900",
                       )}
                     >
                       <span>{item.title}</span>

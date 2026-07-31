@@ -33,7 +33,7 @@ export default function DashboardLayout({
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main content - offset by sidebar width on desktop */}
-      <main className="lg:ml-[240px] min-h-screen">
+      <main className="lg:ml-[280px] min-h-screen">
         <div className="p-6 lg:p-8">{children}</div>
       </main>
     </div>
