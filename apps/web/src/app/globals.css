@@ -5,6 +5,9 @@
 :root {
   --background: var(--color-neutral-50);
   --foreground: var(--color-neutral-950);
+  --scrollbarbg: hsl(216, 8%, 88%);
+  --scrollbarthumb: hsl(192, 3%, 61%);
+  --scrollbarborder: hsl(180, 5%, 83%);
   --shadow-brand: -32px 34px 27px 0px rgba(0,0,0,0.01),
                   -22px 25px 25px 0px rgba(0,0,0,0.04),
                   -14px 12px 21px 0px rgba(0,0,0,0.15),
@@ -16,6 +19,9 @@
 .dark {
   --background: var(--color-neutral-950);
   --foreground: var(--color-neutral-50);
+  --scrollbarbg: hsl(210deg, 15%, 6.25%);
+  --scrollbarthumb: hsl(214, 6%, 23%);
+  --scrollbarborder: hsl(180, 8%, 3%);
   --shadow-brand:  -32px 34px 27px 0px rgba(255,255,255,0.01),
                   -22px 25px 25px 0px rgba(255,255,255,0.04),
                   -14px 12px 21px 0px rgba(255,255,255,0.15),
@@ -41,12 +47,12 @@ body {
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
-    background-color: hsl(210deg, 15%, 6.25%);
+    background-color: var(--scrollbarbg);
   }
   ::-webkit-scrollbar-thumb {
     border-radius: 1000px;
-    background-color: hsl(214, 6%, 23%);
-    border: 2px solid hsl(180, 8%, 3%);
+    background-color: var(--scrollbarthumb);
+    border: 2px solid var(--scrollbarborder);
   }
   /*
     Little bonus: on non-Firefox browsers,

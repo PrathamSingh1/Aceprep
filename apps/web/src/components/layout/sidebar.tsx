@@ -112,7 +112,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Search */}
         <div className="px-2">
-          <div className="py-1 px-3 flex items-center bg-neutral-100 dark:bg-neutral-800 rounded-md">
+          <div className="py-1 px-3 flex items-center bg-background dark:bg-background rounded-md">
             <IconSearch size={16} />
             <input
               type="text"
