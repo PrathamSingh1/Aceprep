@@ -13,7 +13,7 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-background">
       <button
         onClick={() => setSidebarOpen(true)}
-        className="fixed top-4 left-4 z-30 p-2 bg-neutral-200 dark:bg-neutral-800 rounded-lg lg:hidden"
+        className="fixed top-4 right-4 z-30 p-2 bg-neutral-200 dark:bg-neutral-800 rounded-lg lg:hidden"
       >
         <svg
           className="w-5 h-5"

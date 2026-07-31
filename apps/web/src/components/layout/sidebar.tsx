@@ -105,14 +105,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         )}
       >
         {/* Logo */}
-        <div className="p-4 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800">
+        <div className="p-4 flex items-center justify-between">
           <Logo />
           <ThemeToggle />
         </div>
 
         {/* Search */}
         <div className="px-2">
-          <div className="py-1 px-3 flex items-center bg-background dark:bg-background rounded-md">
+          <div className="py-0.5 px-3 flex items-center bg-background dark:bg-background border dark:border-neutral-900 border-neutral-200 rounded-md">
             <IconSearch size={16} />
             <input
               type="text"
@@ -129,7 +129,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               {/* Group header */}
               <button
                 onClick={() => toggleGroup(group.slug)}
-                className="w-full flex items-center justify-between mt-4 px-3 py-1 text-sm font-medium text-neutral-800 border border-transparent dark:hover:border-neutral-800 hover:border-neutral-300 dark:text-neutral-300 hover:bg-neutral-200/60 dark:hover:bg-neutral-900 transition-colors"
+                className="w-full flex items-center justify-between mt-4 px-3 py-1 text-sm font-medium text-neutral-800 border border-transparent dark:hover:border-neutral-800 hover:border-neutral-200 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
               >
                 <span>{group.title}</span>
                 <svg
@@ -161,8 +161,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       className={cn(
                         "flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors mt-1 ",
                         pathname.includes(item.slug)
-                          ? "bg-neutral-200/60 dark:bg-neutral-900 border dark:border-neutral-800 border-neutral-300 text-neutral-900 dark:text-white"
-                          : "text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200/60 dark:hover:bg-neutral-900",
+                          ? "bg-neutral-100 dark:bg-neutral-900 border dark:border-neutral-800 border-neutral-200 text-neutral-900 dark:text-white"
+                          : "text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200/40 dark:hover:bg-neutral-900",
                       )}
                     >
                       <span>{item.title}</span>
