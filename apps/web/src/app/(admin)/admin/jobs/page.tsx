@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAdminCompanies } from "@/features/admin/hooks/useAdmin";
 import { adminApi } from "@/features/admin/lib/api";
-import apiClient from "@/lib/api-client";
-import { useEffect, useCallback } from "react";
 
 export default function AdminJobsPage() {
     const [jobs, setJobs] = useState<any[]>([]);
@@ -13,13 +11,17 @@ export default function AdminJobsPage() {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const { companies } = useAdminCompanies();
+    const { companies, refetch: refetchCompanies } = useAdminCompanies();
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState({
         title: "", companyId: "", location: "", description: "", applyUrl: "",
         salaryMin: "", salaryMax: "", isRemote: false, isStartup: false, isHFT: false,
     });
     const [saving, setSaving] = useState(false);
+
+    const [useNewCompany, setUseNewCompany] = useState(false);
+    const [newCompanyForm, setNewCompanyForm] = useState({ name: "", slug: "", website: "" });
+    const [creatingCompany, setCreatingCompany] = useState(false);
 
     const fetchJobs = useCallback(async () => {
         setLoading(true);
@@ -34,6 +36,22 @@ export default function AdminJobsPage() {
     }, [search, page]);
 
     useEffect(() => { fetchJobs(); }, [fetchJobs]);
+
+    const handleCreateCompany = async () => {
+        if (!newCompanyForm.name) return;
+        setCreatingCompany(true);
+        try {
+            const slug = newCompanyForm.slug || newCompanyForm.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+            const res = await adminApi.createCompany({ ...newCompanyForm, slug });
+            const newId = res.data.data.id;
+            setForm((p) => ({ ...p, companyId: newId }));
+            setUseNewCompany(false);
+            setNewCompanyForm({ name: "", slug: "", website: "" });
+            refetchCompanies();
+        } catch {} finally {
+            setCreatingCompany(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -68,6 +86,8 @@ export default function AdminJobsPage() {
         return min ? `From ${fmt(min)}` : `Up to ${fmt(max!)}`;
     };
 
+    const inputClass = "px-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900";
+
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
@@ -80,21 +100,39 @@ export default function AdminJobsPage() {
             {showForm && (
                 <form onSubmit={handleSubmit} className="border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 mb-6 space-y-3">
                     <div className="grid grid-cols-2 gap-3">
-                        <input type="text" placeholder="Job Title" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} required className="px-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900" />
-                        <select value={form.companyId} onChange={(e) => setForm((p) => ({ ...p, companyId: e.target.value }))} required className="px-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900">
-                            <option value="">Select Company</option>
-                            {companies.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        </select>
+                        <input type="text" placeholder="Job Title" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} required className={inputClass} />
+                        <div>
+                            {!useNewCompany ? (
+                                <div className="flex gap-2">
+                                    <select value={form.companyId} onChange={(e) => setForm((p) => ({ ...p, companyId: e.target.value }))} required className={`${inputClass} flex-1`}>
+                                        <option value="">Select Company</option>
+                                        {companies.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                    <button type="button" onClick={() => setUseNewCompany(true)} className="px-3 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 whitespace-nowrap">+ New</button>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <input type="text" placeholder="Company Name" value={newCompanyForm.name} onChange={(e) => setNewCompanyForm((p) => ({ ...p, name: e.target.value }))} className={`${inputClass} w-full`} />
+                                    <input type="text" placeholder="Website URL (optional)" value={newCompanyForm.website} onChange={(e) => setNewCompanyForm((p) => ({ ...p, website: e.target.value }))} className={`${inputClass} w-full`} />
+                                    <div className="flex gap-2">
+                                        <button type="button" onClick={handleCreateCompany} disabled={creatingCompany || !newCompanyForm.name} className="px-3 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 disabled:opacity-50 whitespace-nowrap">
+                                            {creatingCompany ? "Creating..." : "Create & Select"}
+                                        </button>
+                                        <button type="button" onClick={() => setUseNewCompany(false)} className="px-3 py-2 text-sm rounded-lg border border-neutral-300 dark:border-neutral-700">Cancel</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                        <input type="text" placeholder="Location" value={form.location} onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} className="px-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900" />
-                        <input type="url" placeholder="Apply URL" value={form.applyUrl} onChange={(e) => setForm((p) => ({ ...p, applyUrl: e.target.value }))} className="px-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900" />
+                        <input type="text" placeholder="Location" value={form.location} onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} className={inputClass} />
+                        <input type="url" placeholder="Apply URL" value={form.applyUrl} onChange={(e) => setForm((p) => ({ ...p, applyUrl: e.target.value }))} className={inputClass} />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                        <input type="number" placeholder="Salary Min" value={form.salaryMin} onChange={(e) => setForm((p) => ({ ...p, salaryMin: e.target.value }))} className="px-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900" />
-                        <input type="number" placeholder="Salary Max" value={form.salaryMax} onChange={(e) => setForm((p) => ({ ...p, salaryMax: e.target.value }))} className="px-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900" />
+                        <input type="number" placeholder="Salary Min" value={form.salaryMin} onChange={(e) => setForm((p) => ({ ...p, salaryMin: e.target.value }))} className={inputClass} />
+                        <input type="number" placeholder="Salary Max" value={form.salaryMax} onChange={(e) => setForm((p) => ({ ...p, salaryMax: e.target.value }))} className={inputClass} />
                     </div>
-                    <textarea placeholder="Description" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={2} className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900 resize-none" />
+                    <textarea placeholder="Description" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={2} className={`w-full ${inputClass} resize-none`} />
                     <div className="flex gap-4">
                         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isRemote} onChange={(e) => setForm((p) => ({ ...p, isRemote: e.target.checked }))} /> Remote</label>
                         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isStartup} onChange={(e) => setForm((p) => ({ ...p, isStartup: e.target.checked }))} /> Startup</label>
@@ -104,7 +142,7 @@ export default function AdminJobsPage() {
                 </form>
             )}
 
-            <input type="text" placeholder="Search jobs..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="w-full px-4 py-2 mb-6 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900" />
+            <input type="text" placeholder="Search jobs..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className={`w-full px-4 py-2 mb-6 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm bg-white dark:bg-neutral-900`} />
 
             {loading ? (
                 <div className="text-center py-10 text-neutral-500">Loading...</div>
