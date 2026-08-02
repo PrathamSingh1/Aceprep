@@ -117,6 +117,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const [searchQuery, setSearchQuery] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {
       hiring: true,
@@ -130,6 +131,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const toggleGroup = (slug: string) => {
     setExpandedGroups((prev) => ({ ...prev, [slug]: !prev[slug] }));
   };
+
+  const filteredNavigation = navigation
+    .map((group) => ({
+      ...group,
+      children: group.children?.filter(
+        (item) =>
+          item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          group.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    }))
+    .filter(
+      (group) =>
+        searchQuery === "" ||
+        (group.children && group.children.length > 0),
+    );
 
   return (
     <>
@@ -161,6 +177,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <input
               type="text"
               placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-3 py-1 text-sm  border-none outline-none placeholder:text-neutral-500"
             />
           </div>
@@ -168,7 +186,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 pb-4 mt-2">
-          {navigation.map((group) => (
+          {filteredNavigation.map((group) => (
             <div key={group.slug} className="mb-1">
               {/* Group header */}
               <button
@@ -195,7 +213,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </button>
 
               {/* Children */}
-              {expandedGroups[group.slug] && group.children && (
+              {(searchQuery !== "" || expandedGroups[group.slug]) && group.children && (
                 <div className="ml-4 mt-2">
                   {group.children.map((item) => (
                     <Link
