@@ -12,13 +12,13 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── Auth ──────────────────────────────────────────────
+// ─── Auth (better-auth compatible) ─────────────────────
 
 model User {
   id                 String       @id @default(cuid())
-  email              String       @unique
   name               String?
-  passwordHash       String?
+  email              String       @unique
+  emailVerified      Boolean      @default(false)
   image              String?
   role               Role         @default(USER)
   referralCode       String       @unique @default(cuid())
@@ -43,30 +43,50 @@ model User {
   questionProgress    QuestionProgress[]
   experiences         Experience[]
   approvedExperiences Experience[]       @relation("Approver")
+  savedJobs           SavedJob[]
+  jobApplications     JobApplication[]
 }
 
 model Session {
   id        String   @id @default(cuid())
+  expiresAt DateTime
   token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   ipAddress String?
   userAgent String?
-  expiresAt DateTime
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
-  id                String    @id @default(cuid())
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider          String
-  providerAccountId String
-  accessToken       String?
-  refreshToken      String?
-  expiresAt         DateTime?
+  id                  String    @id @default(cuid())
+  accountId           String
+  providerId          String
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken         String?
+  refreshToken        String?
+  idToken             String?
+  accessTokenExpiresAt DateTime?
+  expiresAt           DateTime?
+  password            String?
+  scope               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  @@unique([provider, providerAccountId])
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
 }
 
 // ─── Questions ─────────────────────────────────────────
@@ -181,24 +201,26 @@ model Company {
 }
 
 model Job {
-  id          String   @id @default(cuid())
-  title       String
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id])
-  type        JobType
-  location    String?
-  description String?
-  applyUrl    String?
-  salaryMin   Int?
-  salaryMax   Int?
-  isRemote    Boolean  @default(false)
-  isStartup   Boolean  @default(false)
-  isHFT       Boolean  @default(false)
-  tags        String[] @default([])
-  postedAt    DateTime @default(now())
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String           @id @default(cuid())
+  title           String
+  companyId       String
+  company         Company          @relation(fields: [companyId], references: [id])
+  type            JobType
+  location        String?
+  description     String?
+  applyUrl        String?
+  salaryMin       Int?
+  salaryMax       Int?
+  isRemote        Boolean          @default(false)
+  isStartup       Boolean          @default(false)
+  isHFT           Boolean          @default(false)
+  tags            String[]         @default([])
+  postedAt        DateTime         @default(now())
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  savedJobs       SavedJob[]
+  jobApplications JobApplication[]
 
   @@index([companyId])
   @@index([type])
@@ -211,6 +233,36 @@ enum JobType {
   FULL_TIME
   INTERNSHIP
   CONTRACT
+}
+
+model SavedJob {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, jobId])
+}
+
+model JobApplication {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId     String
+  job       Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status    ApplicationStatus @default(APPLIED)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([userId, jobId])
+}
+
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  IN_PROGRESS
 }
 
 // ─── Premium & Payments ────────────────────────────────

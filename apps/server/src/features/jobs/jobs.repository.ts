@@ -1,10 +1,14 @@
 import { prisma } from "../../lib/prisma.js";
 
+// ─── Jobs ─────────────────────────────────────────
+
 export async function findJobs(params: {
     type?: string;
     search?: string;
     tag?: string;
     companyId?: string;
+    userId?: string;
+    filter?: string;
     page: number;
     pageSize: number;
 }) {
@@ -24,6 +28,16 @@ export async function findJobs(params: {
         else where.tags = { has: params.tag };
     }
 
+    if (params.userId && params.filter) {
+        if (params.filter === "saved") {
+            where.savedJobs = { some: { userId: params.userId } };
+        } else if (params.filter === "applied") {
+            where.jobApplications = { some: { userId: params.userId, status: "APPLIED" } };
+        } else if (params.filter === "in_progress") {
+            where.jobApplications = { some: { userId: params.userId, status: "IN_PROGRESS" } };
+        }
+    }
+
     const [jobs, total] = await Promise.all([
         prisma.job.findMany({
             where,
@@ -37,7 +51,38 @@ export async function findJobs(params: {
         prisma.job.count({ where }),
     ]);
 
-    return { jobs, total, totalPages: Math.ceil(total / params.pageSize) };
+    let enrichedJobs = jobs;
+
+    if (params.userId) {
+        const jobIds = jobs.map((j) => j.id);
+        const [savedRecords, applicationRecords] = await Promise.all([
+            prisma.savedJob.findMany({
+                where: { userId: params.userId, jobId: { in: jobIds } },
+                select: { jobId: true },
+            }),
+            prisma.jobApplication.findMany({
+                where: { userId: params.userId, jobId: { in: jobIds } },
+                select: { jobId: true, status: true },
+            }),
+        ]);
+
+        const savedSet = new Set(savedRecords.map((r) => r.jobId));
+        const statusMap = new Map(applicationRecords.map((r) => [r.jobId, r.status]));
+
+        enrichedJobs = jobs.map((job) => ({
+            ...job,
+            isSaved: savedSet.has(job.id),
+            applicationStatus: statusMap.get(job.id) || null,
+        }));
+    } else {
+        enrichedJobs = jobs.map((job) => ({
+            ...job,
+            isSaved: false,
+            applicationStatus: null,
+        }));
+    }
+
+    return { jobs: enrichedJobs, total, totalPages: Math.ceil(total / params.pageSize) };
 }
 
 export async function findJobCountsByType() {
@@ -75,4 +120,68 @@ export async function findCompanyById(id: string) {
             },
         },
     });
+}
+
+// ─── Save / Apply ────────────────────────────────
+
+export async function toggleSaveJob(userId: string, jobId: string) {
+    const existing = await prisma.savedJob.findUnique({
+        where: { userId_jobId: { userId, jobId } },
+    });
+
+    if (existing) {
+        await prisma.savedJob.delete({ where: { id: existing.id } });
+        return { saved: false };
+    }
+
+    await prisma.savedJob.create({ data: { userId, jobId } });
+    return { saved: true };
+}
+
+export async function setJobApplicationStatus(userId: string, jobId: string, status: string | null) {
+    if (!status) {
+        const existing = await prisma.jobApplication.findUnique({
+            where: { userId_jobId: { userId, jobId } },
+        });
+        if (existing) {
+            await prisma.jobApplication.delete({ where: { id: existing.id } });
+        }
+        return { status: null };
+    }
+
+    const existing = await prisma.jobApplication.findUnique({
+        where: { userId_jobId: { userId, jobId } },
+    });
+
+    if (existing) {
+        const updated = await prisma.jobApplication.update({
+            where: { id: existing.id },
+            data: { status: status as any },
+        });
+        return { status: updated.status };
+    }
+
+    const created = await prisma.jobApplication.create({
+        data: { userId, jobId, status: status as any },
+    });
+    return { status: created.status };
+}
+
+export async function getUserJobStatuses(userId: string) {
+    const [saved, applications] = await Promise.all([
+        prisma.savedJob.findMany({
+            where: { userId },
+            select: { jobId: true },
+        }),
+        prisma.jobApplication.findMany({
+            where: { userId },
+            select: { jobId: true, status: true },
+        }),
+    ]);
+
+    return {
+        saved: saved.map((r) => r.jobId),
+        applied: applications.filter((a) => a.status === "APPLIED").map((a) => a.jobId),
+        inProgress: applications.filter((a) => a.status === "IN_PROGRESS").map((a) => a.jobId),
+    };
 }

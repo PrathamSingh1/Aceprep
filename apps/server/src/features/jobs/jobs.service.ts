@@ -5,6 +5,8 @@ export async function getJobs(params: {
     search?: string;
     tag?: string;
     companyId?: string;
+    userId?: string;
+    filter?: string;
     page?: number;
 }) {
     const page = params.page || 1;
@@ -22,4 +24,16 @@ export async function getCompanyJobCounts() {
 
 export async function getCompanyJobs(companyId: string) {
     return jobsRepo.findCompanyById(companyId);
+}
+
+export async function toggleSaveJob(userId: string, jobId: string) {
+    return jobsRepo.toggleSaveJob(userId, jobId);
+}
+
+export async function setJobApplicationStatus(userId: string, jobId: string, status: string | null) {
+    return jobsRepo.setJobApplicationStatus(userId, jobId, status);
+}
+
+export async function getUserJobStatuses(userId: string) {
+    return jobsRepo.getUserJobStatuses(userId);
 }

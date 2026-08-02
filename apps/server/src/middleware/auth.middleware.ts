@@ -1,39 +1,33 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import { env } from "../config/env.js";
-import { prisma } from "../lib/prisma.js";
+import { auth } from "../lib/auth.js";
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) {
-            return res.status(401).json({ success: false, message: "No token provided" });
+        const session = await auth.api.getSession({
+            headers: req.headers as any,
+        });
+        if (!session) {
+            return res.status(401).json({ success: false, message: "Not authenticated" });
         }
-
-        const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
-        const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
-
-        if (!user) {
-            return res.status(401).json({ success: false, message: "User not found" });
-        }
-
-        (req as any).user = user;
+        (req as any).user = session.user;
+        (req as any).session = session.session;
         next();
-    } catch (error) {
-        return res.status(401).json({ success: false, message: "Invalid token" });
+    } catch {
+        return res.status(401).json({ success: false, message: "Invalid session" });
     }
 };
 
 export const optionalAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-        if (token) {
-            const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
-            const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
-            (req as any).user = user;
+        const session = await auth.api.getSession({
+            headers: req.headers as any,
+        });
+        if (session) {
+            (req as any).user = session.user;
+            (req as any).session = session.session;
         }
     } catch {
-        // ignore invalid tokens for optional auth
+        // ignore invalid sessions for optional auth
     }
     next();
 };

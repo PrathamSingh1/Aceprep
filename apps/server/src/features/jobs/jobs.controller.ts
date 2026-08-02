@@ -3,12 +3,15 @@ import * as jobsService from "./jobs.service.js";
 
 export async function getJobs(req: Request, res: Response, next: NextFunction) {
     try {
-        const { type, search, tag, companyId, page } = req.query;
+        const { type, search, tag, companyId, page, filter } = req.query;
+        const userId = (req as any).user?.id;
         const result = await jobsService.getJobs({
             type: type as string,
             search: search as string,
             tag: tag as string,
             companyId: companyId as string,
+            userId,
+            filter: filter as string,
             page: page ? parseInt(page as string) : 1,
         });
         res.json({ success: true, data: result });
@@ -42,6 +45,39 @@ export async function getCompanyJobs(req: Request, res: Response, next: NextFunc
             return res.status(404).json({ success: false, message: "Company not found" });
         }
         res.json({ success: true, data: company });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// ─── Save / Apply ────────────────────────────────
+
+export async function toggleSave(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userId = (req as any).user.id;
+        const result = await jobsService.toggleSaveJob(userId, req.params.id);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function setApplicationStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userId = (req as any).user.id;
+        const { status } = req.body;
+        const result = await jobsService.setJobApplicationStatus(userId, req.params.id, status || null);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function getUserJobStatuses(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userId = (req as any).user.id;
+        const result = await jobsService.getUserJobStatuses(userId);
+        res.json({ success: true, data: result });
     } catch (error) {
         next(error);
     }
