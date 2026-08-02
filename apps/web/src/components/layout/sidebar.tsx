@@ -6,12 +6,32 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 import { ThemeToggle } from "../theme/theme-toggle";
-import { IconSearch } from "@tabler/icons-react";
+import {
+  IconSearch,
+  IconBriefcase,
+  IconSchool,
+  IconBuilding,
+  IconMessageQuestion,
+  IconCode,
+  IconFolder,
+  IconUsers,
+  IconClipboardList,
+  IconMath,
+  IconBook,
+  IconRobot,
+  IconBrain,
+  IconDatabase,
+  IconLayoutDashboard,
+  IconSitemap,
+  IconNetwork,
+  IconDeviceDesktop,
+  IconComponents,
+} from "@tabler/icons-react";
 
 interface NavItem {
   title: string;
   slug: string;
-  children?: { title: string; slug: string }[];
+  children?: { title: string; slug: string; icon: any }[];
 }
 
 const navigation: NavItem[] = [
@@ -19,49 +39,73 @@ const navigation: NavItem[] = [
     title: "Hiring",
     slug: "hiring",
     children: [
-      { title: "All Jobs", slug: "all-jobs" },
-      { title: "Internships", slug: "internships" },
-      { title: "Companies", slug: "companies" },
+      { title: "All Jobs", slug: "all-jobs", icon: IconBriefcase },
+      { title: "Internships", slug: "internships", icon: IconSchool },
+      { title: "Companies", slug: "companies", icon: IconBuilding },
     ],
   },
   {
     title: "Library",
     slug: "library",
     children: [
-      { title: "Interview Questions", slug: "interview-questions" },
-      { title: "DSA", slug: "dsa" },
-      { title: "Projects", slug: "projects" },
-      { title: "HR Questions", slug: "hr-questions" },
-      { title: "Scenario Based", slug: "scenario-based" },
-      { title: "Aptitude", slug: "aptitude" },
-      { title: "Core CS Subjects", slug: "core-cs" },
+      {
+        title: "Interview Questions",
+        slug: "interview-questions",
+        icon: IconMessageQuestion,
+      },
+      { title: "DSA", slug: "dsa", icon: IconCode },
+      { title: "Projects", slug: "projects", icon: IconFolder },
+      { title: "HR Questions", slug: "hr-questions", icon: IconUsers },
+      {
+        title: "Scenario Based",
+        slug: "scenario-based",
+        icon: IconClipboardList,
+      },
+      { title: "Aptitude", slug: "aptitude", icon: IconMath },
+      { title: "Core CS Subjects", slug: "core-cs", icon: IconBook },
     ],
   },
   {
     title: "AI and Machine Learning",
     slug: "ai-ml",
     children: [
-      { title: "Agentic AI", slug: "agentic-ai" },
-      { title: "AI & ML Questions", slug: "ai-ml-questions" },
-      { title: "SQL Questions", slug: "sql" },
+      { title: "Agentic AI", slug: "agentic-ai", icon: IconRobot },
+      { title: "AI & ML Questions", slug: "ai-ml-questions", icon: IconBrain },
+      { title: "SQL Questions", slug: "sql", icon: IconDatabase },
     ],
   },
   {
     title: "System Design",
     slug: "system-design",
     children: [
-      { title: "High Level Design", slug: "high-level-design" },
-      { title: "Low Level Design", slug: "low-level-design" },
+      {
+        title: "High Level Design",
+        slug: "high-level-design",
+        icon: IconLayoutDashboard,
+      },
+      {
+        title: "Low Level Design",
+        slug: "low-level-design",
+        icon: IconSitemap,
+      },
     ],
   },
   {
     title: "Fundamentals",
     slug: "fundamentals",
     children: [
-      { title: "OOPs Concepts", slug: "oops" },
-      { title: "Computer Network", slug: "computer-network" },
-      { title: "Operating System", slug: "operating-system" },
-      { title: "DBMS", slug: "dbms" },
+      { title: "OOPs Concepts", slug: "oops", icon: IconComponents },
+      {
+        title: "Computer Network",
+        slug: "computer-network",
+        icon: IconNetwork,
+      },
+      {
+        title: "Operating System",
+        slug: "operating-system",
+        icon: IconDeviceDesktop,
+      },
+      { title: "DBMS", slug: "dbms", icon: IconDatabase },
     ],
   },
 ];
@@ -159,12 +203,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       href={`/browse/${item.slug}`}
                       onClick={onClose}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors mt-1 ",
+                        "flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors mt-1 group",
                         pathname.includes(item.slug)
                           ? "bg-neutral-100 dark:bg-neutral-900 border dark:border-neutral-800 border-neutral-200 text-neutral-900 dark:text-white"
                           : "text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200/40 dark:hover:bg-neutral-900",
                       )}
                     >
+                      <item.icon
+                        size={16}
+                        className="shrink-0 group-hover:rotate-6 group-hover:scale-[1.25] transition-all duration-300"
+                      />
+
                       <span>{item.title}</span>
                     </Link>
                   ))}
