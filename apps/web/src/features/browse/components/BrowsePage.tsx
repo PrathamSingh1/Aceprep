@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import apiClient from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { getConfigForSlug } from "../lib/categoryFilters";
+import { DropDown } from "./DropDown";
 
 interface BrowsePageProps {
   categorySlug: string;
@@ -106,7 +107,7 @@ export function BrowsePage({
   return (
     <div>
       <h1 className="text-2xl font-bold font-manrope mb-1">{title}</h1>
-      <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-6">
+      <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-6 font-manrope">
         {description}
       </p>
 
@@ -120,21 +121,15 @@ export function BrowsePage({
       />
 
       {/* Category-specific Filters */}
-      <div className="flex gap-4 mb-6 flex-wrap">
+      <div className="flex gap-4 mb-6 flex-wrap font-manrope">
         {config.filters.map((f) => (
-          <select
+          <DropDown
             key={f.key}
+            label={f.label}
             value={getFilterValue(f.key)}
-            onChange={(e) => handleFilterChange(f.key, e.target.value)}
-            className="px-4 py-2 border border-neutral-200 dark:border-neutral-900 rounded-lg text-sm bg-background dark:bg-background focus:outline-none focus:ring-2 dark:focus:ring-neutral-900 focus:ring-neutral-100"
-          >
-            <option value="">All {f.label}s</option>
-            {getFilterOptions(f.key, f.options).map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            options={getFilterOptions(f.key, f.options)}
+            onChange={(value) => handleFilterChange(f.key, value)}
+          />
         ))}
       </div>
 
@@ -206,7 +201,7 @@ export function BrowsePage({
                             ? `inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-xs w-fit ${
                                 difficultyColors[value] || ""
                               }`
-                            : "text-neutral-600 dark:text-neutral-400",
+                            : "text-neutral-600 dark:text-neutral-400 text-xs",
                       )}
                     >
                       {col.key === "difficulty" ? (
