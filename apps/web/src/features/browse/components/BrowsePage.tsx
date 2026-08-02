@@ -161,7 +161,7 @@ export function BrowsePage({
                       .join(" ")} 60px 60px`,
             }}
           >
-            <span className="text-xs text-neutral-400 dark:text-neutral-600">
+            <span className="text-xs text-neutral-400 dark:text-neutral-600 content-center">
               #
             </span>
             {config.columns.map((col) => (
