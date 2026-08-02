@@ -106,7 +106,9 @@ export function BrowsePage({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold font-manrope mb-1">{title}</h1>
+      <h1 className="text-2xl md:text-3xl font-bold font-manrope mb-1">
+        {title}
+      </h1>
       <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-6 font-manrope">
         {description}
       </p>
@@ -117,11 +119,11 @@ export function BrowsePage({
         placeholder={`Search ${title.toLowerCase()}...`}
         value={filters.search || ""}
         onChange={(e) => handleFilterChange("search", e.target.value)}
-        className="w-full px-4 py-2.5 mb-4 border border-neutral-200 dark:border-neutral-900 rounded-lg bg-background dark:background text-sm outline-none focus:ring-2 dark:focus:ring-neutral-900 focus:ring-neutral-100"
+        className="w-full px-4 py-2.5 mb-4 border border-neutral-200 dark:border-neutral-900 rounded-lg bg-background dark:background text-sm outline-none focus:ring-2 dark:focus:ring-neutral-900 focus:ring-neutral-100 font-manrope"
       />
 
       {/* Category-specific Filters */}
-      <div className="flex gap-4 mb-6 flex-wrap font-manrope">
+      <div className="flex mb-4 md:mb-6 font-manrope">
         {config.filters.map((f) => (
           <DropDown
             key={f.key}
