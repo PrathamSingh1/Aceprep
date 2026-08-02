@@ -5,6 +5,8 @@ import apiClient from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { getConfigForSlug } from "../lib/categoryFilters";
 import { DropDown } from "./DropDown";
+import { IconSquare, IconSquareCheck } from "@tabler/icons-react";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 
 interface BrowsePageProps {
   categorySlug: string;
@@ -150,20 +152,31 @@ export function BrowsePage({
           <div
             className="grid gap-2 px-4 py-2.5 bg-neutral-50 dark:bg-background text-sm font-medium text-neutral-400 dark:text-neutral-500 border-b dark:border-neutral-800 border-neutral-200"
             style={{
-              gridTemplateColumns: `40px 1fr ${config.columns
-                .slice(1)
-                .map(() => "120px")
-                .join(" ")} 60px 60px`,
+              gridTemplateColumns:
+                window.innerWidth < 768
+                  ? "10px 1fr 40px 40px"
+                  : `40px 1fr ${config.columns
+                      .slice(1)
+                      .map(() => "120px")
+                      .join(" ")} 60px 60px`,
             }}
           >
             <span className="text-xs text-neutral-400 dark:text-neutral-600">
               #
             </span>
             {config.columns.map((col) => (
-              <span key={col.key}>{col.label}</span>
+              <span
+                key={col.key}
+                className={cn(
+                  (col.key === "field" || col.key === "difficulty") &&
+                    "hidden md:block",
+                )}
+              >
+                {col.label}
+              </span>
             ))}
-            <span className="pl-2">Solved</span>
-            <span className="pl-4">Save</span>
+            <span className="pl-2 md:-ml-5">Solved</span>
+            <span className="pl-4 md:-ml-5">Save</span>
           </div>
 
           {/* Rows */}
@@ -175,10 +188,13 @@ export function BrowsePage({
               <div
                 className="grid gap-2 items-center py-3 px-4 font-manrope"
                 style={{
-                  gridTemplateColumns: `40px 1fr ${config.columns
-                    .slice(1)
-                    .map(() => "120px")
-                    .join(" ")} 60px 60px`,
+                  gridTemplateColumns:
+                    window.innerWidth < 768
+                      ? "10px 1fr 30px 20px"
+                      : `40px 1fr ${config.columns
+                          .slice(1)
+                          .map(() => "120px")
+                          .join(" ")} 60px 60px`,
                 }}
               >
                 <span className="text-sm text-neutral-500">{i + 1}</span>
@@ -197,10 +213,12 @@ export function BrowsePage({
                       }
                       className={cn(
                         "text-sm",
+                        (col.key === "field" || col.key === "difficulty") &&
+                          "hidden md:inline-flex",
                         col.key === "content"
                           ? "font-medium text-neutral-900 dark:text-neutral-100 cursor-pointer"
                           : col.key === "difficulty"
-                            ? `inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-xs w-fit ${
+                            ? `items-center gap-1.5 text-[10px] px-2 py-1 rounded-xs w-fit ${
                                 difficultyColors[value] || ""
                               }`
                             : "text-neutral-600 dark:text-neutral-400 text-xs",
@@ -228,13 +246,33 @@ export function BrowsePage({
                   onClick={(e) => e.stopPropagation()}
                   className="text-neutral-400 hover:text-neutral-600"
                 >
-                  {q.isSolved ? "✅" : "☐"}
+                  {q.isSolved ? (
+                    <IconSquareCheck
+                      size={16}
+                      className="hover:scale-[1.15] transition-transform duration-150 cursor-pointer"
+                    />
+                  ) : (
+                    <IconSquare
+                      size={16}
+                      className="hover:scale-[1.15] transition-transform duration-150 cursor-pointer"
+                    />
+                  )}
                 </button>
                 <button
                   onClick={(e) => e.stopPropagation()}
                   className="text-neutral-400 hover:text-yellow-500"
                 >
-                  {q.isBookmarked ? "🔖" : "☆"}
+                  {q.isBookmarked ? (
+                    <BookmarkCheck
+                      size={16}
+                      className="hover:scale-[1.15] transition-transform duration-150 cursor-pointer"
+                    />
+                  ) : (
+                    <Bookmark
+                      size={16}
+                      className="hover:scale-[1.15] transition-transform duration-150 cursor-pointer"
+                    />
+                  )}
                 </button>
               </div>
 
@@ -243,10 +281,13 @@ export function BrowsePage({
                 <div
                   className="grid gap-2 -mt-[10px] px-4 pb-2"
                   style={{
-                    gridTemplateColumns: `40px 1fr ${config.columns
-                      .slice(1)
-                      .map(() => "120px")
-                      .join(" ")} 60px 60px`,
+                    gridTemplateColumns:
+                      window.innerWidth < 768
+                        ? "10px 1fr"
+                        : `40px 1fr ${config.columns
+                            .slice(1)
+                            .map(() => "120px")
+                            .join(" ")} 60px 60px`,
                   }}
                 >
                   <div className="" style={{ gridColumn: "2" }}>

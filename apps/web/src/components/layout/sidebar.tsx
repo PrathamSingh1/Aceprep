@@ -143,8 +143,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }))
     .filter(
       (group) =>
-        searchQuery === "" ||
-        (group.children && group.children.length > 0),
+        searchQuery === "" || (group.children && group.children.length > 0),
     );
 
   return (
@@ -213,30 +212,31 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </button>
 
               {/* Children */}
-              {(searchQuery !== "" || expandedGroups[group.slug]) && group.children && (
-                <div className="ml-4 mt-2">
-                  {group.children.map((item) => (
-                    <Link
-                      key={item.slug}
-                      href={`/browse/${item.slug}`}
-                      onClick={onClose}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors mt-1 group",
-                        pathname.includes(item.slug)
-                          ? "bg-neutral-100 dark:bg-neutral-900 border dark:border-neutral-800 border-neutral-200 text-neutral-900 dark:text-white"
-                          : "text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200/40 dark:hover:bg-neutral-900",
-                      )}
-                    >
-                      <item.icon
-                        size={16}
-                        className="shrink-0 group-hover:rotate-6 group-hover:scale-[1.25] transition-all duration-300"
-                      />
+              {(searchQuery !== "" || expandedGroups[group.slug]) &&
+                group.children && (
+                  <div className="ml-4 mt-2">
+                    {group.children.map((item) => (
+                      <Link
+                        key={item.slug}
+                        href={`/browse/${item.slug}`}
+                        onClick={onClose}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors mt-1 group",
+                          pathname.includes(item.slug)
+                            ? "bg-neutral-100 dark:bg-neutral-900 border dark:border-neutral-800 border-neutral-200 text-neutral-900 dark:text-white"
+                            : "text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200/40 dark:hover:bg-neutral-900",
+                        )}
+                      >
+                        <item.icon
+                          size={16}
+                          className="shrink-0 group-hover:rotate-6 group-hover:scale-[1.25] transition-all duration-300"
+                        />
 
-                      <span>{item.title}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
+                        <span>{item.title}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
             </div>
           ))}
         </nav>
