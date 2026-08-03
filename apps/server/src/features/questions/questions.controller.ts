@@ -75,3 +75,56 @@ export async function deleteSet(req: Request, res: Response, next: NextFunction)
         next(error);
     }
 }
+
+export async function toggleSolved(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userId = (req as any).user.id;
+        const result = await questionsService.toggleSolved(userId, req.params.id);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function toggleBookmark(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userId = (req as any).user.id;
+        const result = await questionsService.toggleBookmark(userId, req.params.id);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function getQuestionStats(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userId = (req as any).user?.id;
+        const categorySlug = req.query.categorySlug as string | undefined;
+        const result = await questionsService.getQuestionStats(userId, categorySlug);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function getSolvedQuestions(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userId = (req as any).user.id;
+        const page = req.query.page ? parseInt(req.query.page as string) : 1;
+        const result = await questionsService.getSolvedQuestions(userId, page);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function getBookmarkedQuestions(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userId = (req as any).user.id;
+        const page = req.query.page ? parseInt(req.query.page as string) : 1;
+        const result = await questionsService.getBookmarkedQuestions(userId, page);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+}

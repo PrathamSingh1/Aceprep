@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 import { ThemeToggle } from "../theme/theme-toggle";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
   IconSearch,
   IconBriefcase,
@@ -26,6 +27,11 @@ import {
   IconNetwork,
   IconDeviceDesktop,
   IconComponents,
+  IconDots,
+  IconLogout,
+  IconMessage,
+  IconCrown,
+  IconCircleFilled,
 } from "@tabler/icons-react";
 
 interface NavItem {
@@ -110,6 +116,12 @@ const navigation: NavItem[] = [
   },
 ];
 
+const TIER_LABELS: Record<string, string> = {
+  TIER_1: "1 Month Premium",
+  TIER_2: "6 Month Premium",
+  TIER_3: "1 Year Premium",
+};
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -117,7 +129,12 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { user, loading: authLoading, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showMenu, setShowMenu] = useState(false);
+  const [platformStatus, setPlatformStatus] = useState<"ok" | "error" | "checking">("checking");
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {
       hiring: true,
@@ -127,6 +144,34 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       fundamentals: true,
     },
   );
+
+  const checkPlatformStatus = useCallback(async () => {
+    try {
+      const baseURL = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") || "http://localhost:5000";
+      const res = await fetch(`${baseURL}/health`, { method: "GET" });
+      setPlatformStatus(res.ok ? "ok" : "error");
+    } catch {
+      setPlatformStatus("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    checkPlatformStatus();
+    const interval = setInterval(checkPlatformStatus, 30000);
+    return () => clearInterval(interval);
+  }, [checkPlatformStatus]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
 
   const toggleGroup = (slug: string) => {
     setExpandedGroups((prev) => ({ ...prev, [slug]: !prev[slug] }));
@@ -145,6 +190,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       (group) =>
         searchQuery === "" || (group.children && group.children.length > 0),
     );
+
+  const userInitial = user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
 
   return (
     <>
@@ -240,6 +287,126 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
           ))}
         </nav>
+
+        {/* User Profile */}
+        {user && (
+          <div className="border-t border-neutral-200 dark:border-neutral-800 p-3" ref={menuRef}>
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
+              >
+                {user.image ? (
+                  <img
+                    src={user.image}
+                    alt={user.name || ""}
+                    className="w-8 h-8 rounded-full shrink-0"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-medium text-white">{userInitial}</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                    {user.name || "User"}
+                  </p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {user.isPremiumActive
+                      ? TIER_LABELS[user.currentPremiumTier || ""] || "Premium"
+                      : "Free plan"}
+                  </p>
+                </div>
+                <IconDots size={18} className="text-neutral-400 shrink-0" />
+              </button>
+
+              {/* Dropdown Menu */}
+              {showMenu && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-background dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-lg overflow-hidden z-50">
+                  {/* User Info Header */}
+                  <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+                    <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                      {user.name || "User"}
+                    </p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                      {user.email}
+                    </p>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="py-1">
+                    {/* Feedback */}
+                    <a
+                      href="mailto:support@aceprep.com?subject=Feedback"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setShowMenu(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    >
+                      <IconMessage size={16} className="text-neutral-500" />
+                      Feedback
+                    </a>
+
+                    {/* Log Out */}
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        logout();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    >
+                      <IconLogout size={16} className="text-neutral-500" />
+                      Log Out
+                    </button>
+                  </div>
+
+                  {/* Upgrade to Premium */}
+                  {!user.isPremiumActive && (
+                    <div className="px-3 pb-3">
+                      <Link
+                        href="/pricing"
+                        onClick={() => setShowMenu(false)}
+                        className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all"
+                      >
+                        <IconCrown size={16} />
+                        Upgrade to Premium
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Platform Status */}
+                  <div className="px-4 py-3 border-t border-neutral-200 dark:border-neutral-800">
+                    <p className="text-[11px] font-semibold tracking-wider uppercase text-neutral-400 dark:text-neutral-500 mb-1.5">
+                      Platform Status
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {platformStatus === "checking" ? (
+                        <>
+                          <div className="w-2 h-2 rounded-full bg-neutral-300 animate-pulse" />
+                          <span className="text-xs text-neutral-500">Checking...</span>
+                        </>
+                      ) : platformStatus === "ok" ? (
+                        <>
+                          <IconCircleFilled size={8} className="text-green-500" />
+                          <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                            All systems normal.
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <IconCircleFilled size={8} className="text-red-500" />
+                          <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                            System issue detected.
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </aside>
     </>
   );

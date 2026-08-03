@@ -6,9 +6,18 @@ import apiClient from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { getConfigForSlug } from "../lib/categoryFilters";
 import { DropDown } from "./DropDown";
-import { IconSquare, IconSquareCheck } from "@tabler/icons-react";
+import { IconSquare, IconSquareCheck, IconFilter } from "@tabler/icons-react";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { questionsApi } from "@/features/questions/lib/api";
+
+type Tab = "all" | "solved" | "saved";
+
+const tabs: { key: Tab; label: string }[] = [
+  { key: "all", label: "All questions" },
+  { key: "solved", label: "Solved questions" },
+  { key: "saved", label: "Saved questions" },
+];
 
 interface BrowsePageProps {
   categorySlug: string;
@@ -29,6 +38,19 @@ export function BrowsePage({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [premiumRequired, setPremiumRequired] = useState(false);
   const [isLOGGED_IN, setIsLoggedIn] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("all");
+  const [stats, setStats] = useState<{
+    total: number;
+    easy: number;
+    medium: number;
+    hard: number;
+    solved: number;
+    bookmarked: number;
+    solvedEasy: number;
+    solvedMedium: number;
+    solvedHard: number;
+  } | null>(null);
 
   const [filters, setFilters] = useState<Record<string, string>>({
     search: "",
@@ -43,26 +65,56 @@ export function BrowsePage({
 
   const config = getConfigForSlug(categorySlug);
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await questionsApi.getStats(categorySlug);
+      setStats(res.data.data);
+    } catch {}
+  }, [categorySlug]);
+
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Record<string, any> = { page: filters.page || 1 };
-      if (filters.fieldId) params.fieldId = filters.fieldId;
-      if (filters.difficulty) params.difficulty = filters.difficulty;
-      if (filters.tag) params.tag = filters.tag;
+      if (activeTab === "solved") {
+        const res = await questionsApi.getSolvedQuestions(
+          Number(filters.page) || 1,
+        );
+        setQuestions(res.data.data.questions);
+        setPagination(res.data.data.pagination);
+        setPremiumRequired(false);
+      } else if (activeTab === "saved") {
+        const res = await questionsApi.getBookmarkedQuestions(
+          Number(filters.page) || 1,
+        );
+        setQuestions(res.data.data.questions);
+        setPagination(res.data.data.pagination);
+        setPremiumRequired(false);
+      } else {
+        const params: Record<string, any> = { page: filters.page || 1 };
+        if (filters.fieldId) params.fieldId = filters.fieldId;
+        if (filters.difficulty) params.difficulty = filters.difficulty;
+        if (filters.tag) params.tag = filters.tag;
 
-      const res = await apiClient.get(`/categories/${categorySlug}/questions`, {
-        params,
-      });
-      setQuestions(res.data.data.questions);
-      setPagination(res.data.data.pagination);
-      setPremiumRequired(res.data.data.pagination.isPremiumRequired || false);
-      setIsLoggedIn(res.data.data.pagination.isLoggedIn || false);
+        const res = await apiClient.get(
+          `/categories/${categorySlug}/questions`,
+          { params },
+        );
+        setQuestions(res.data.data.questions);
+        setPagination(res.data.data.pagination);
+        setPremiumRequired(
+          res.data.data.pagination.isPremiumRequired || false,
+        );
+        setIsLoggedIn(res.data.data.pagination.isLoggedIn || false);
+      }
     } catch {
     } finally {
       setLoading(false);
     }
-  }, [categorySlug, JSON.stringify(filters)]);
+  }, [categorySlug, JSON.stringify(filters), activeTab]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   useEffect(() => {
     fetchQuestions();
@@ -75,6 +127,15 @@ export function BrowsePage({
   useEffect(() => {
     setFilters({ search: "", page: "1" });
   }, [categorySlug]);
+
+  useEffect(() => {
+    setActiveTab("all");
+  }, [categorySlug]);
+
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    setFilters((prev) => ({ ...prev, page: "1" }));
+  };
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: "1" }));
@@ -105,6 +166,46 @@ export function BrowsePage({
     return q[key] || "—";
   };
 
+  const handleToggleSolved = async (questionId: string) => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (!user.isPremiumActive) {
+      setShowPremiumModal(true);
+      return;
+    }
+    try {
+      await questionsApi.toggleSolved(questionId);
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q.id === questionId ? { ...q, isSolved: !q.isSolved } : q,
+        ),
+      );
+      fetchStats();
+    } catch {}
+  };
+
+  const handleToggleBookmark = async (questionId: string) => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (!user.isPremiumActive) {
+      setShowPremiumModal(true);
+      return;
+    }
+    try {
+      await questionsApi.toggleBookmark(questionId);
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q.id === questionId ? { ...q, isBookmarked: !q.isBookmarked } : q,
+        ),
+      );
+      fetchStats();
+    } catch {}
+  };
+
   const difficultyColors: Record<string, string> = {
     EASY: "bg-neutral-100 dark:bg-neutral-900 border-1 dark:border-neutral-900 border-neutral-200",
     MEDIUM:
@@ -112,38 +213,176 @@ export function BrowsePage({
     HARD: "bg-neutral-100 dark:bg-neutral-900 border-1 dark:border-neutral-900 border-neutral-200",
   };
 
-  const colCount = config.columns.length + 3;
-
   return (
     <div>
       <h1 className="text-2xl md:text-3xl font-bold font-manrope mb-1">
         {title}
       </h1>
-      <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-6 font-manrope">
+      <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-4 font-manrope">
         {description}
       </p>
 
-      {/* Search */}
-      <input
-        type="text"
-        placeholder={`Search ${title.toLowerCase()}...`}
-        value={filters.search || ""}
-        onChange={(e) => handleFilterChange("search", e.target.value)}
-        className="w-full px-4 py-2.5 mb-4 border border-neutral-200 dark:border-neutral-900 rounded-lg bg-background dark:background text-sm outline-none focus:ring-2 dark:focus:ring-neutral-900 focus:ring-neutral-100 font-manrope"
-      />
-
-      {/* Category-specific Filters */}
-      <div className="flex mb-4 md:mb-6 font-manrope">
-        {config.filters.map((f) => (
-          <DropDown
-            key={f.key}
-            label={f.label}
-            value={getFilterValue(f.key)}
-            options={getFilterOptions(f.key, f.options)}
-            onChange={(value) => handleFilterChange(f.key, value)}
-          />
+      {/* Tabs */}
+      <div className="flex gap-1 mb-4 border-b border-neutral-200 dark:border-neutral-800">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => handleTabChange(tab.key)}
+            className={cn(
+              "px-4 py-2.5 text-sm font-medium transition-colors relative",
+              activeTab === tab.key
+                ? "text-neutral-900 dark:text-white"
+                : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300",
+            )}
+          >
+            {tab.label}
+            {activeTab === tab.key && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-900 dark:bg-white" />
+            )}
+          </button>
         ))}
       </div>
+
+      {/* Progress Stats - All questions tab */}
+      {activeTab === "all" && stats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div
+            className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors"
+            onClick={() => handleTabChange("solved")}
+          >
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+              Total progress
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {stats.solved}
+              <span className="text-sm font-normal text-neutral-400">
+                /{stats.total}
+              </span>
+            </p>
+          </div>
+          <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+              Easy questions
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {stats.solvedEasy}
+              <span className="text-sm font-normal text-neutral-400">
+                /{stats.easy}
+              </span>
+            </p>
+          </div>
+          <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+              Medium questions
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {stats.solvedMedium}
+              <span className="text-sm font-normal text-neutral-400">
+                /{stats.medium}
+              </span>
+            </p>
+          </div>
+          <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+              Hard questions
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {stats.solvedHard}
+              <span className="text-sm font-normal text-neutral-400">
+                /{stats.hard}
+              </span>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Progress Stats - Solved tab */}
+      {activeTab === "solved" && stats && (
+        <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+              Total solved
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {stats.solved}
+              <span className="text-sm font-normal text-neutral-400">
+                /{stats.total}
+              </span>
+            </p>
+          </div>
+          <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+              Easy solved
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {stats.solvedEasy}
+              <span className="text-sm font-normal text-neutral-400">
+                /{stats.easy}
+              </span>
+            </p>
+          </div>
+          <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+              Medium solved
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {stats.solvedMedium}
+              <span className="text-sm font-normal text-neutral-400">
+                /{stats.medium}
+              </span>
+            </p>
+          </div>
+          <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+              Hard solved
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {stats.solvedHard}
+              <span className="text-sm font-normal text-neutral-400">
+                /{stats.hard}
+              </span>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Progress Stats - Saved tab */}
+      {activeTab === "saved" && stats && (
+        <div className="grid grid-cols-1 gap-3 mb-6">
+          <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-4 max-w-xs">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+              Total saved
+            </p>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {stats.bookmarked}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Search & Filters - only on All questions tab */}
+      {activeTab === "all" && (
+        <>
+          <input
+            type="text"
+            placeholder={`Search ${title.toLowerCase()}...`}
+            value={filters.search || ""}
+            onChange={(e) => handleFilterChange("search", e.target.value)}
+            className="w-full px-4 py-2.5 mb-4 border border-neutral-200 dark:border-neutral-900 rounded-lg bg-background dark:background text-sm outline-none focus:ring-2 dark:focus:ring-neutral-900 focus:ring-neutral-100 font-manrope"
+          />
+          <div className="flex mb-4 md:mb-6 font-manrope">
+            {config.filters.map((f) => (
+              <DropDown
+                key={f.key}
+                label={f.label}
+                value={getFilterValue(f.key)}
+                options={getFilterOptions(f.key, f.options)}
+                onChange={(value) => handleFilterChange(f.key, value)}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Table */}
       {loading ? (
@@ -153,11 +392,23 @@ export function BrowsePage({
       ) : premiumRequired ? (
         <div className="text-center py-16 border border-neutral-200 dark:border-neutral-800 rounded-lg">
           <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            <svg
+              className="w-8 h-8 text-blue-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold font-manrope mb-2">Premium Content</h3>
+          <h3 className="text-lg font-semibold font-manrope mb-2">
+            Premium Content
+          </h3>
           <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-4 max-w-md mx-auto">
             {!isLOGGED_IN
               ? "Login to view the first page for free, or upgrade to premium for unlimited access."
@@ -181,8 +432,24 @@ export function BrowsePage({
           </div>
         </div>
       ) : questions.length === 0 ? (
-        <div className="text-center py-10 text-neutral-500">
-          No questions found. Try adjusting your filters.
+        <div className="text-center py-16 border border-neutral-200 dark:border-neutral-800 rounded-lg">
+          <div className="w-16 h-16 mx-auto mb-4 bg-neutral-100 dark:bg-neutral-900 rounded-full flex items-center justify-center">
+            <IconFilter size={24} className="text-neutral-400" />
+          </div>
+          <h3 className="text-lg font-semibold font-manrope mb-2">
+            {activeTab === "solved"
+              ? "No solved questions yet"
+              : activeTab === "saved"
+                ? "No saved questions yet"
+                : "No questions found"}
+          </h3>
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm max-w-md mx-auto">
+            {activeTab === "solved"
+              ? "Mark interview questions as solved to see them listed here."
+              : activeTab === "saved"
+                ? "Save interview questions to see them listed here."
+                : "Try adjusting your filters."}
+          </p>
         </div>
       ) : (
         <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden">
@@ -235,7 +502,9 @@ export function BrowsePage({
                           .join(" ")} 60px 60px`,
                 }}
               >
-                <span className="text-sm text-neutral-500">{i + 1}</span>
+                <span className="text-sm text-neutral-500">
+                  {(Number(filters.page) - 1) * 10 + i + 1}
+                </span>
                 {config.columns.map((col) => {
                   const value = getCellValue(q, col.key);
                   const isContent = col.key === "content";
@@ -281,8 +550,14 @@ export function BrowsePage({
                   );
                 })}
                 <button
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-neutral-400 hover:text-neutral-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleSolved(q.id);
+                  }}
+                  className={cn(
+                    "text-neutral-400 hover:text-neutral-600",
+                    !user?.isPremiumActive && "opacity-50 cursor-not-allowed",
+                  )}
                 >
                   {q.isSolved ? (
                     <IconSquareCheck
@@ -297,8 +572,14 @@ export function BrowsePage({
                   )}
                 </button>
                 <button
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-neutral-400 hover:text-yellow-500"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleBookmark(q.id);
+                  }}
+                  className={cn(
+                    "text-neutral-400 hover:text-yellow-500",
+                    !user?.isPremiumActive && "opacity-50 cursor-not-allowed",
+                  )}
                 >
                   {q.isBookmarked ? (
                     <BookmarkCheck
@@ -370,6 +651,49 @@ export function BrowsePage({
           >
             Next
           </button>
+        </div>
+      )}
+
+      {/* Premium Modal */}
+      {showPremiumModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-background dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xl max-w-sm w-full p-6">
+            <div className="w-12 h-12 mx-auto mb-4 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center">
+              <svg
+                className="w-6 h-6 text-amber-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold font-manrope text-center mb-2">
+              Premium Required
+            </h3>
+            <p className="text-neutral-600 dark:text-neutral-400 text-sm text-center mb-6">
+              Upgrade to premium to track your solved and saved questions.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setShowPremiumModal(false)}
+                className="px-4 py-2 text-sm rounded-lg border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => router.push("/pricing")}
+                className="px-4 py-2 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+              >
+                Upgrade to Premium
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

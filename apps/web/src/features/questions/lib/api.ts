@@ -10,4 +10,14 @@ export const questionsApi = {
         search?: string;
         page?: number;
     }) => apiClient.get("/questions", { params }),
+    toggleSolved: (questionId: string) =>
+        apiClient.post(`/questions/${questionId}/toggle-solved`),
+    toggleBookmark: (questionId: string) =>
+        apiClient.post(`/questions/${questionId}/toggle-bookmark`),
+    getStats: (categorySlug?: string) =>
+        apiClient.get("/questions/stats", { params: categorySlug ? { categorySlug } : {} }),
+    getSolvedQuestions: (page?: number) =>
+        apiClient.get("/questions/solved", { params: { page } }),
+    getBookmarkedQuestions: (page?: number) =>
+        apiClient.get("/questions/saved", { params: { page } }),
 };

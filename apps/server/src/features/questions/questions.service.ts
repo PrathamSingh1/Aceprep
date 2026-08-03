@@ -114,3 +114,45 @@ export async function deleteQuestion(id: string) {
 export async function deleteSet(id: string) {
     return questionsRepo.deleteSet(id);
 }
+
+export async function toggleSolved(userId: string, questionId: string) {
+    const question = await prisma.question.findUnique({ where: { id: questionId } });
+    if (!question) throw new Error("Question not found");
+    return questionsRepo.toggleSolved(userId, questionId);
+}
+
+export async function toggleBookmark(userId: string, questionId: string) {
+    const question = await prisma.question.findUnique({ where: { id: questionId } });
+    if (!question) throw new Error("Question not found");
+    return questionsRepo.toggleBookmark(userId, questionId);
+}
+
+export async function getQuestionStats(userId?: string, categorySlug?: string) {
+    return questionsRepo.getQuestionStats(userId, categorySlug);
+}
+
+export async function getSolvedQuestions(userId: string, page?: number) {
+    const PAGE_SIZE = 20;
+    const p = page || 1;
+    const { questions, total } = await questionsRepo.findSolvedQuestions(userId, {
+        skip: (p - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+    });
+    return {
+        questions,
+        pagination: { page: p, totalPages: Math.ceil(total / PAGE_SIZE), totalQuestions: total },
+    };
+}
+
+export async function getBookmarkedQuestions(userId: string, page?: number) {
+    const PAGE_SIZE = 20;
+    const p = page || 1;
+    const { questions, total } = await questionsRepo.findBookmarkedQuestions(userId, {
+        skip: (p - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+    });
+    return {
+        questions,
+        pagination: { page: p, totalPages: Math.ceil(total / PAGE_SIZE), totalQuestions: total },
+    };
+}

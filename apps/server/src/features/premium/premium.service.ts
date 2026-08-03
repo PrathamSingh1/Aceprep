@@ -46,7 +46,7 @@ export async function createOrder(userId: string, input: CreateOrderInput) {
     const order = await razorpay.orders.create({
         amount,
         currency: "INR",
-        receipt: `premium_${userId}_${Date.now()}`,
+        receipt: `prem_${userId.slice(0, 6)}_${Date.now().toString(36)}`,
     });
 
     const purchase = await prisma.premiumPurchase.create({
