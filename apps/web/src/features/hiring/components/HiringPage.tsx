@@ -25,11 +25,11 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
   const [totalPages, setTotalPages] = useState(1);
 
   const [activeTab, setActiveTab] = useState("all");
-  const [pendingApplyJobId, setPendingApplyJobId] = useState<string | null>(null);
+  const [pendingApplyJobId, setPendingApplyJobId] = useState<string | null>(
+    null,
+  );
 
-  const tags = type === "FULL_TIME"
-    ? ["", "Startup", "Remote", "HFT"]
-    : [""];
+  const tags = type === "FULL_TIME" ? ["", "Startup", "Remote", "HFT"] : [""];
 
   const tagLabels: Record<string, string> = {
     "": type === "FULL_TIME" ? "All Jobs" : "All Internships",
@@ -39,23 +39,14 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
   };
 
   const filterTabs = [
-    { key: "all", label: type === "FULL_TIME" ? "All Jobs" : "All Internships" },
+    {
+      key: "all",
+      label: type === "FULL_TIME" ? "All Jobs" : "All Internships",
+    },
     { key: "in_progress", label: "In Progress" },
     { key: "applied", label: "Applied" },
     { key: "saved", label: "Saved" },
   ];
-
-  const requireAuth = useCallback(() => {
-    if (!user) {
-      router.push("/login");
-      return false;
-    }
-    if (!user.isPremiumActive) {
-      router.push("/pricing");
-      return false;
-    }
-    return true;
-  }, [user, router]);
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
@@ -68,16 +59,21 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
       const res = await apiClient.get("/jobs", { params });
       setJobs(res.data.data.jobs);
       setTotalPages(res.data.data.totalPages);
-    } catch {} finally {
+    } catch {
+    } finally {
       setLoading(false);
     }
   }, [type, page, search, activeTag, activeTab]);
 
-  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
 
   useEffect(() => {
     apiClient.get("/jobs/counts").then((res) => setCounts(res.data.data));
-    apiClient.get("/jobs/companies").then((res) => setCompanyCards(res.data.data));
+    apiClient
+      .get("/jobs/companies")
+      .then((res) => setCompanyCards(res.data.data));
   }, []);
 
   useEffect(() => {
@@ -85,29 +81,50 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
   }, [search, activeTag, activeTab]);
 
   const handleSave = async (jobId: string) => {
-    if (!requireAuth()) return;
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     try {
       const res = await apiClient.post(`/jobs/${jobId}/save`);
       const saved = res.data.data.saved;
       setJobs((prev) =>
-        prev.map((j) => (j.id === jobId ? { ...j, isSaved: saved } : j))
+        prev.map((j) => (j.id === jobId ? { ...j, isSaved: saved } : j)),
       );
     } catch {}
   };
 
   const handleApply = (job: any) => {
-    if (!requireAuth()) return;
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const hasAppliedBefore = jobs.some(
+      (j) =>
+        j.applicationStatus === "APPLIED" ||
+        j.applicationStatus === "IN_PROGRESS",
+    );
+
+    if (hasAppliedBefore && !user.isPremiumActive) {
+      router.push("/pricing");
+      return;
+    }
+
     if (job.applyUrl) {
       window.open(job.applyUrl, "_blank");
     }
-    apiClient.post(`/jobs/${job.id}/apply`, { status: "IN_PROGRESS" }).then(() => {
-      setJobs((prev) =>
-        prev.map((j) =>
-          j.id === job.id ? { ...j, applicationStatus: "IN_PROGRESS" } : j
-        )
-      );
-      setPendingApplyJobId(job.id);
-    }).catch(() => {});
+    apiClient
+      .post(`/jobs/${job.id}/apply`, { status: "IN_PROGRESS" })
+      .then(() => {
+        setJobs((prev) =>
+          prev.map((j) =>
+            j.id === job.id ? { ...j, applicationStatus: "IN_PROGRESS" } : j,
+          ),
+        );
+        setPendingApplyJobId(job.id);
+      })
+      .catch(() => {});
   };
 
   const handleDidApply = async (jobId: string, applied: boolean) => {
@@ -123,8 +140,8 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
           prev.map((j) =>
             j.id === jobId
               ? { ...j, applicationStatus: applied ? "APPLIED" : null }
-              : j
-          )
+              : j,
+          ),
         );
       } else {
         fetchJobs();
@@ -171,7 +188,7 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
               "px-4 py-2 text-sm rounded-md transition-colors font-medium",
               activeTab === tab.key
                 ? "bg-white dark:bg-neutral-900 text-blue-600 shadow-sm"
-                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200"
+                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200",
             )}
           >
             {tab.label}
@@ -199,7 +216,7 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
                 "px-4 py-2 text-sm rounded-full border transition-colors",
                 activeTag === tag
                   ? "bg-blue-500 text-white border-blue-500"
-                  : "border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  : "border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800",
               )}
             >
               {tagLabels[tag]}
@@ -209,7 +226,7 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
       )}
 
       {/* Company cards carousel */}
-      {companyCards.length > 0 && type === "FULL_TIME" && activeTab === "all" && (
+      {/* {companyCards.length > 0 && type === "FULL_TIME" && activeTab === "all" && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold font-manrope mb-3">
             Top companies hiring
@@ -229,14 +246,22 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
             ))}
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Job cards */}
       {loading ? (
         <div className="text-center py-10 text-neutral-500">Loading...</div>
       ) : jobs.length === 0 ? (
         <div className="text-center py-10 text-neutral-500">
-          No {activeTab === "saved" ? "saved" : activeTab === "applied" ? "applied" : activeTab === "in_progress" ? "in-progress" : ""} {type === "FULL_TIME" ? "jobs" : "internships"} found.
+          No{" "}
+          {activeTab === "saved"
+            ? "saved"
+            : activeTab === "applied"
+              ? "applied"
+              : activeTab === "in_progress"
+                ? "in-progress"
+                : ""}{" "}
+          {type === "FULL_TIME" ? "jobs" : "internships"} found.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -248,10 +273,14 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
               {/* Status badges */}
               <div className="absolute top-3 right-3 flex gap-1">
                 {job.applicationStatus === "APPLIED" && (
-                  <span className="text-xs bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full font-medium">Applied</span>
+                  <span className="text-xs bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full font-medium">
+                    Applied
+                  </span>
                 )}
                 {job.applicationStatus === "IN_PROGRESS" && (
-                  <span className="text-xs bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 px-2 py-0.5 rounded-full font-medium">In Progress</span>
+                  <span className="text-xs bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 px-2 py-0.5 rounded-full font-medium">
+                    In Progress
+                  </span>
                 )}
               </div>
 
@@ -262,7 +291,9 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
                   </div>
                   <div>
                     <div className="font-medium text-sm">{job.title}</div>
-                    <div className="text-xs text-neutral-500">{job.company.name}</div>
+                    <div className="text-xs text-neutral-500">
+                      {job.company.name}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -302,13 +333,17 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
                     <span className="text-green-600 font-medium">Paid</span>
                   )}
                 </div>
-                <div className="text-xs text-neutral-400">{timeAgo(job.postedAt)}</div>
+                <div className="text-xs text-neutral-400">
+                  {timeAgo(job.postedAt)}
+                </div>
               </div>
 
               {/* Did you apply prompt */}
               {pendingApplyJobId === job.id && (
                 <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Did you apply?</p>
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                    Did you apply?
+                  </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleDidApply(job.id, true)}
@@ -336,11 +371,15 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
                       job.applicationStatus === "APPLIED"
                         ? "bg-green-500 text-white"
                         : job.applicationStatus === "IN_PROGRESS"
-                        ? "bg-yellow-500 text-white"
-                        : "bg-blue-500 text-white hover:bg-blue-600"
+                          ? "bg-yellow-500 text-white"
+                          : "bg-blue-500 text-white hover:bg-blue-600",
                     )}
                   >
-                    {job.applicationStatus === "APPLIED" ? "Applied ✓" : job.applicationStatus === "IN_PROGRESS" ? "In Progress" : "Apply Now"}
+                    {job.applicationStatus === "APPLIED"
+                      ? "Applied ✓"
+                      : job.applicationStatus === "IN_PROGRESS"
+                        ? "In Progress"
+                        : "Apply Now"}
                   </button>
                   <button
                     onClick={() => handleSave(job.id)}
@@ -348,7 +387,7 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
                       "px-4 py-2 text-sm rounded-lg border transition-colors font-medium",
                       job.isSaved
                         ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400"
-                        : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                        : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800",
                     )}
                   >
                     {job.isSaved ? "Saved" : "Save"}
@@ -370,7 +409,9 @@ export function HiringPage({ type, title, description }: HiringPageProps) {
           >
             Previous
           </button>
-          <span className="text-sm text-neutral-500">Page {page} of {totalPages}</span>
+          <span className="text-sm text-neutral-500">
+            Page {page} of {totalPages}
+          </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import apiClient from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { getConfigForSlug } from "../lib/categoryFilters";
 import { DropDown } from "./DropDown";
 import { IconSquare, IconSquareCheck } from "@tabler/icons-react";
 import { Bookmark, BookmarkCheck } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 interface BrowsePageProps {
   categorySlug: string;
@@ -19,10 +21,14 @@ export function BrowsePage({
   title,
   description,
 }: BrowsePageProps) {
+  const { user } = useAuth();
+  const router = useRouter();
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [fields, setFields] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [premiumRequired, setPremiumRequired] = useState(false);
+  const [isLOGGED_IN, setIsLoggedIn] = useState(false);
 
   const [filters, setFilters] = useState<Record<string, string>>({
     search: "",
@@ -50,6 +56,8 @@ export function BrowsePage({
       });
       setQuestions(res.data.data.questions);
       setPagination(res.data.data.pagination);
+      setPremiumRequired(res.data.data.pagination.isPremiumRequired || false);
+      setIsLoggedIn(res.data.data.pagination.isLoggedIn || false);
     } catch {
     } finally {
       setLoading(false);
@@ -141,6 +149,36 @@ export function BrowsePage({
       {loading ? (
         <div className="text-center py-10 text-neutral-500">
           Loading questions...
+        </div>
+      ) : premiumRequired ? (
+        <div className="text-center py-16 border border-neutral-200 dark:border-neutral-800 rounded-lg">
+          <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold font-manrope mb-2">Premium Content</h3>
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-4 max-w-md mx-auto">
+            {!isLOGGED_IN
+              ? "Login to view the first page for free, or upgrade to premium for unlimited access."
+              : "Upgrade to premium to access all pages and unlimited questions."}
+          </p>
+          <div className="flex gap-3 justify-center">
+            {!isLOGGED_IN ? (
+              <button
+                onClick={() => router.push("/login")}
+                className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600"
+              >
+                Login
+              </button>
+            ) : null}
+            <button
+              onClick={() => router.push("/pricing")}
+              className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600"
+            >
+              Upgrade to Premium
+            </button>
+          </div>
         </div>
       ) : questions.length === 0 ? (
         <div className="text-center py-10 text-neutral-500">
