@@ -17,8 +17,14 @@ export function useAdminDashboard() {
     return { stats, loading };
 }
 
+interface AdminUsersData {
+    users: any[];
+    total: number;
+    totalPages: number;
+}
+
 export function useAdminUsers() {
-    const [data, setData] = useState<any>({ users: [], total: 0, totalPages: 0 });
+    const [data, setData] = useState<AdminUsersData>({ users: [], total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ search: "", role: "", isPremium: "", page: 1 });
 
@@ -56,8 +62,14 @@ export function useAdminCategories() {
     return { categories, loading, refetch: fetchCategories };
 }
 
+interface AdminQuestionsData {
+    questions: any[];
+    total: number;
+    totalPages: number;
+}
+
 export function useAdminQuestions() {
-    const [data, setData] = useState<any>({ questions: [], total: 0, totalPages: 0 });
+    const [data, setData] = useState<AdminQuestionsData>({ questions: [], total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ search: "", difficulty: "", categoryId: "", fieldId: "", page: 1 });
 
@@ -76,8 +88,14 @@ export function useAdminQuestions() {
     return { ...data, loading, filters, setFilters, refetch: fetchQuestions };
 }
 
+interface AdminPurchasesData {
+    purchases: any[];
+    total: number;
+    totalPages: number;
+}
+
 export function useAdminPurchases() {
-    const [data, setData] = useState<any>({ purchases: [], total: 0, totalPages: 0 });
+    const [data, setData] = useState<AdminPurchasesData>({ purchases: [], total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
 
@@ -115,8 +133,14 @@ export function useAdminCoupons() {
     return { coupons, loading, refetch: fetchCoupons };
 }
 
+interface AdminCompaniesData {
+    companies: any[];
+    total: number;
+    totalPages: number;
+}
+
 export function useAdminCompanies() {
-    const [data, setData] = useState<any>({ companies: [], total: 0, totalPages: 0 });
+    const [data, setData] = useState<AdminCompaniesData>({ companies: [], total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ search: "", page: 1 });
 

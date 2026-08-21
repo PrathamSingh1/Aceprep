@@ -38,7 +38,7 @@ export async function getCompanyJobCounts(req: Request, res: Response, next: Nex
     }
 }
 
-export async function getCompanyJobs(req: Request, res: Response, next: NextFunction) {
+export async function getCompanyJobs(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const company = await jobsService.getCompanyJobs(req.params.id);
         if (!company) {
@@ -52,7 +52,7 @@ export async function getCompanyJobs(req: Request, res: Response, next: NextFunc
 
 // ─── Save / Apply ────────────────────────────────
 
-export async function toggleSave(req: Request, res: Response, next: NextFunction) {
+export async function toggleSave(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const userId = (req as any).user.id;
         const result = await jobsService.toggleSaveJob(userId, req.params.id);
@@ -62,7 +62,7 @@ export async function toggleSave(req: Request, res: Response, next: NextFunction
     }
 }
 
-export async function setApplicationStatus(req: Request, res: Response, next: NextFunction) {
+export async function setApplicationStatus(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const userId = (req as any).user.id;
         const { status } = req.body;

@@ -58,25 +58,25 @@ export async function addQuestion(req: Request, res: Response, next: NextFunctio
     }
 }
 
-export async function deleteQuestion(req: Request, res: Response, next: NextFunction) {
+export async function deleteQuestion(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
-        await questionsService.deleteQuestion(req.params.id as string);
+        await questionsService.deleteQuestion(req.params.id);
         res.json({ success: true, message: "Question deleted" });
     } catch (error) {
         next(error);
     }
 }
 
-export async function deleteSet(req: Request, res: Response, next: NextFunction) {
+export async function deleteSet(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
-        await questionsService.deleteSet(req.params.id as string);
+        await questionsService.deleteSet(req.params.id);
         res.json({ success: true, message: "Set deleted" });
     } catch (error) {
         next(error);
     }
 }
 
-export async function toggleSolved(req: Request, res: Response, next: NextFunction) {
+export async function toggleSolved(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const userId = (req as any).user.id;
         const result = await questionsService.toggleSolved(userId, req.params.id);
@@ -86,7 +86,7 @@ export async function toggleSolved(req: Request, res: Response, next: NextFuncti
     }
 }
 
-export async function toggleBookmark(req: Request, res: Response, next: NextFunction) {
+export async function toggleBookmark(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const userId = (req as any).user.id;
         const result = await questionsService.toggleBookmark(userId, req.params.id);

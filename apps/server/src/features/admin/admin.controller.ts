@@ -29,7 +29,7 @@ export async function getUsers(req: Request, res: Response, next: NextFunction) 
     }
 }
 
-export async function getUserDetail(req: Request, res: Response, next: NextFunction) {
+export async function getUserDetail(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const user = await adminService.getUserDetail(req.params.id);
         res.json({ success: true, data: user });
@@ -38,7 +38,7 @@ export async function getUserDetail(req: Request, res: Response, next: NextFunct
     }
 }
 
-export async function updateUserRole(req: Request, res: Response, next: NextFunction) {
+export async function updateUserRole(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const { role } = req.body;
         if (!role || !["USER", "ADMIN"].includes(role)) {
@@ -51,7 +51,7 @@ export async function updateUserRole(req: Request, res: Response, next: NextFunc
     }
 }
 
-export async function toggleUserPremium(req: Request, res: Response, next: NextFunction) {
+export async function toggleUserPremium(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const user = await adminService.toggleUserPremium(req.params.id, req.body);
         res.json({ success: true, data: user });
@@ -60,7 +60,7 @@ export async function toggleUserPremium(req: Request, res: Response, next: NextF
     }
 }
 
-export async function deleteUser(req: Request, res: Response, next: NextFunction) {
+export async function deleteUser(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         await adminService.deleteUser(req.params.id);
         res.json({ success: true, message: "User deleted" });
@@ -89,7 +89,7 @@ export async function createCategory(req: Request, res: Response, next: NextFunc
     }
 }
 
-export async function updateCategory(req: Request, res: Response, next: NextFunction) {
+export async function updateCategory(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const category = await adminService.updateCategory(req.params.id, req.body);
         res.json({ success: true, data: category });
@@ -98,7 +98,7 @@ export async function updateCategory(req: Request, res: Response, next: NextFunc
     }
 }
 
-export async function deleteCategory(req: Request, res: Response, next: NextFunction) {
+export async function deleteCategory(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         await adminService.deleteCategory(req.params.id);
         res.json({ success: true, message: "Category deleted" });
@@ -134,7 +134,7 @@ export async function createQuestion(req: Request, res: Response, next: NextFunc
     }
 }
 
-export async function updateQuestion(req: Request, res: Response, next: NextFunction) {
+export async function updateQuestion(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const question = await adminService.updateQuestion(req.params.id, req.body);
         res.json({ success: true, data: question });
@@ -177,7 +177,7 @@ export async function createCoupon(req: Request, res: Response, next: NextFuncti
     }
 }
 
-export async function deleteCoupon(req: Request, res: Response, next: NextFunction) {
+export async function deleteCoupon(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         await adminService.deleteCoupon(req.params.id);
         res.json({ success: true, message: "Coupon deleted" });
@@ -210,7 +210,7 @@ export async function createCompany(req: Request, res: Response, next: NextFunct
     }
 }
 
-export async function updateCompany(req: Request, res: Response, next: NextFunction) {
+export async function updateCompany(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const company = await adminService.updateCompany(req.params.id, req.body);
         res.json({ success: true, data: company });
@@ -219,7 +219,7 @@ export async function updateCompany(req: Request, res: Response, next: NextFunct
     }
 }
 
-export async function deleteCompany(req: Request, res: Response, next: NextFunction) {
+export async function deleteCompany(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         await adminService.deleteCompany(req.params.id);
         res.json({ success: true, message: "Company deleted" });
@@ -254,7 +254,7 @@ export async function createJob(req: Request, res: Response, next: NextFunction)
     }
 }
 
-export async function updateJob(req: Request, res: Response, next: NextFunction) {
+export async function updateJob(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         const job = await adminService.updateJob(req.params.id, req.body);
         res.json({ success: true, data: job });
@@ -263,7 +263,7 @@ export async function updateJob(req: Request, res: Response, next: NextFunction)
     }
 }
 
-export async function deleteJob(req: Request, res: Response, next: NextFunction) {
+export async function deleteJob(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     try {
         await adminService.deleteJob(req.params.id);
         res.json({ success: true, message: "Job deleted" });
