@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/api-client";
 import { cn } from "@/lib/utils";
@@ -63,6 +63,8 @@ export function BrowsePage({
     totalQuestions: 0,
   });
 
+  const requestIdRef = useRef(0);
+
   const config = getConfigForSlug(categorySlug);
 
   const fetchStats = useCallback(async () => {
@@ -72,53 +74,60 @@ export function BrowsePage({
     } catch {}
   }, [categorySlug]);
 
-  const fetchQuestions = useCallback(async () => {
-    setLoading(true);
-    try {
-      if (activeTab === "solved") {
-        const res = await questionsApi.getSolvedQuestions(
-          Number(filters.page) || 1,
-        );
-        setQuestions(res.data.data.questions);
-        setPagination(res.data.data.pagination);
-        setPremiumRequired(false);
-      } else if (activeTab === "saved") {
-        const res = await questionsApi.getBookmarkedQuestions(
-          Number(filters.page) || 1,
-        );
-        setQuestions(res.data.data.questions);
-        setPagination(res.data.data.pagination);
-        setPremiumRequired(false);
-      } else {
-        const params: Record<string, any> = { page: filters.page || 1 };
-        if (filters.fieldId) params.fieldId = filters.fieldId;
-        if (filters.difficulty) params.difficulty = filters.difficulty;
-        if (filters.tag) params.tag = filters.tag;
-
-        const res = await apiClient.get(
-          `/categories/${categorySlug}/questions`,
-          { params },
-        );
-        setQuestions(res.data.data.questions);
-        setPagination(res.data.data.pagination);
-        setPremiumRequired(
-          res.data.data.pagination.isPremiumRequired || false,
-        );
-        setIsLoggedIn(res.data.data.pagination.isLoggedIn || false);
-      }
-    } catch {
-    } finally {
-      setLoading(false);
-    }
-  }, [categorySlug, JSON.stringify(filters), activeTab]);
-
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
 
   useEffect(() => {
-    fetchQuestions();
-  }, [fetchQuestions]);
+    const id = ++requestIdRef.current;
+    setLoading(true);
+
+    const load = async () => {
+      try {
+        let res;
+        if (activeTab === "solved") {
+          res = await questionsApi.getSolvedQuestions(
+            Number(filters.page) || 1,
+          );
+        } else if (activeTab === "saved") {
+          res = await questionsApi.getBookmarkedQuestions(
+            Number(filters.page) || 1,
+          );
+        } else {
+          const params: Record<string, any> = { page: filters.page || 1 };
+          if (filters.fieldId) params.fieldId = filters.fieldId;
+          if (filters.difficulty) params.difficulty = filters.difficulty;
+          if (filters.tag) params.tag = filters.tag;
+
+          res = await apiClient.get(`/categories/${categorySlug}/questions`, {
+            params,
+          });
+        }
+
+        if (id !== requestIdRef.current) return;
+
+        const data = res.data.data;
+        setQuestions(data.questions);
+        setPagination(data.pagination);
+        if (activeTab === "all") {
+          setPremiumRequired(data.pagination.isPremiumRequired || false);
+          setIsLoggedIn(data.pagination.isLoggedIn || false);
+        } else {
+          setPremiumRequired(false);
+        }
+      } catch {
+        if (id === requestIdRef.current) {
+          setQuestions([]);
+        }
+      } finally {
+        if (id === requestIdRef.current) {
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+  }, [categorySlug, filters, activeTab]);
 
   useEffect(() => {
     apiClient.get("/questions/fields").then((res) => setFields(res.data.data));
@@ -126,9 +135,6 @@ export function BrowsePage({
 
   useEffect(() => {
     setFilters({ search: "", page: "1" });
-  }, [categorySlug]);
-
-  useEffect(() => {
     setActiveTab("all");
   }, [categorySlug]);
 
