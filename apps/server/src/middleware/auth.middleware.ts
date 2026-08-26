@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { auth } from "../lib/auth.js";
+import { getAuth } from "../lib/auth.js";
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const session = await auth.api.getSession({
+        const session = await getAuth().api.getSession({
             headers: req.headers as any,
         });
         if (!session) {
@@ -19,7 +19,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
 export const optionalAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const session = await auth.api.getSession({
+        const session = await getAuth().api.getSession({
             headers: req.headers as any,
         });
         if (session) {

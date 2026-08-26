@@ -15,4 +15,17 @@ const envSchema = z.object({
     GOOGLE_CLIENT_SECRET: z.string(),
 });
 
-export const env = envSchema.parse(process.env);
+let _env: z.infer<typeof envSchema>;
+
+export function getEnv() {
+    if (!_env) {
+        _env = envSchema.parse(process.env);
+    }
+    return _env;
+}
+
+export const env = new Proxy({} as z.infer<typeof envSchema>, {
+    get(_target, prop) {
+        return (getEnv() as any)[prop];
+    },
+});

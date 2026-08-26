@@ -1,12 +1,20 @@
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { prisma } from "../../lib/prisma.js";
-import { env } from "../../config/env.js";
+import { getEnv } from "../../config/env.js";
 
-const razorpay = new Razorpay({
-    key_id: env.RAZORPAY_KEY_ID,
-    key_secret: env.RAZORPAY_SECRET,
-});
+let _razorpay: Razorpay;
+
+function getRazorpay() {
+    if (!_razorpay) {
+        const env = getEnv();
+        _razorpay = new Razorpay({
+            key_id: env.RAZORPAY_KEY_ID,
+            key_secret: env.RAZORPAY_SECRET,
+        });
+    }
+    return _razorpay;
+}
 
 export interface CreateOrderInput {
     tier: "TIER_1" | "TIER_2" | "TIER_3";
@@ -43,7 +51,7 @@ export async function createOrder(userId: string, input: CreateOrderInput) {
         }
     }
 
-    const order = await razorpay.orders.create({
+    const order = await getRazorpay().orders.create({
         amount,
         currency: "INR",
         receipt: `prem_${userId.slice(0, 6)}_${Date.now().toString(36)}`,
@@ -80,7 +88,7 @@ export interface VerifyPaymentInput {
 export async function verifyPayment(userId: string, input: VerifyPaymentInput) {
     const body = input.razorpayOrderId + "|" + input.razorpayPaymentId;
     const expectedSignature = crypto
-        .createHmac("sha256", env.RAZORPAY_SECRET)
+        .createHmac("sha256", getEnv().RAZORPAY_SECRET)
         .update(body)
         .digest("hex");
 
