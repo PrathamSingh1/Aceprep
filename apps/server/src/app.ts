@@ -26,6 +26,12 @@ app.use(express.json());
 // routes
 app.use("/api/v1", router);
 
+app.get("/", (_req, res) => {
+    res.json({
+        message: "Server is running"
+    })
+})
+
 app.get("/health", (_req, res) => {
     res.json({ status: "ok" });
 });
