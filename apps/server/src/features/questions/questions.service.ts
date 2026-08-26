@@ -1,4 +1,4 @@
-import * as questionsRepo from "./questions.repository";
+import * as questionsRepo from "./questions.repository.js";
 import { prisma } from "../../lib/prisma.js";
 
 export async function getLanguages() {
